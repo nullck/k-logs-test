@@ -54,6 +54,9 @@ func main() {
 							ContainerPort: 80,
 						},
 					},
+					Command: []string{
+						"/bin/sh", "-ec", "while :; do echo 'hello'; sleep 5 ; done",
+					},
 				},
 			},
 		},
