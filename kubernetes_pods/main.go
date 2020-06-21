@@ -60,7 +60,17 @@ func CreatePod() string {
 						},
 					},
 					Command: []string{
-						"/bin/sh", "-ec", "while :; do echo '$POD_ID: hello logs'; sleep 5 ; done",
+						"/bin/sh", "-ec", "while :; do echo \"$POD_NAME: hello logs\"; sleep 5 ; done",
+					},
+					Env: []apiv1.EnvVar{
+						{
+							Name: "POD_NAME",
+							ValueFrom: &apiv1.EnvVarSource{
+								FieldRef: &apiv1.ObjectFieldSelector{
+									FieldPath: "metadata.name",
+								},
+							},
+						},
 					},
 				},
 			},
