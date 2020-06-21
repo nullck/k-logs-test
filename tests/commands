@@ -1,0 +1,7 @@
+kubectl port-forward svc/elasticsearch 9200:9200
+
+
+curl http://127.0.0.1:9200/_cat/indices
+curl http://127.0.0.1:9200/test_logs/_count?pretty=true
+
+
