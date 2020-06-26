@@ -1,4 +1,4 @@
-package main
+package elastic
 
 import (
 	"bytes"
@@ -10,19 +10,18 @@ import (
 )
 
 // https://github.com/elastic/go-elasticsearch#go-elasticsearch
-func main() {
+func Search(elasticAddr, indexName, podName string) {
 	cfg := elasticsearch.Config{
 		Addresses: []string{
-			"http://localhost:9200",
+			elasticAddr,
 		},
 	}
-	indexName := "test_logs"
 	es, _ := elasticsearch.NewClient(cfg)
 	var buf bytes.Buffer
 	query := map[string]interface{}{
 		"query": map[string]interface{}{
 			"match": map[string]interface{}{
-				"kubernetes.pod_name": "test-logs",
+				"kubernetes.pod_name": podName,
 			},
 		},
 	}
