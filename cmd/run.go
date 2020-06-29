@@ -19,12 +19,15 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/nullck/k-logs-test/pkg/elastic"
 	"github.com/nullck/k-logs-test/pkg/kubernetes_pods"
 	"github.com/spf13/cobra"
 )
 
 var podName string
 var namespaceName string
+var elasticAddr string
+var elasticRes string
 
 // runCmd represents the run command
 var runCmd = &cobra.Command{
@@ -41,11 +44,13 @@ k-logs-test run --pod-name test-logs --namespace logs --elastic-endpoint https:/
 			os.Exit(1)
 		}
 		fmt.Println(p)
+		elasticRes, err = elastic.Search(elasticAddr, podName)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(runCmd)
-	runCmd.Flags().StringVarP(&podName, "pod-name", "p", "", "The pod name")
-	runCmd.Flags().StringVarP(&namespaceName, "namespace", "n", "", "The pod namespace")
+	runCmd.Flags().StringVarP(&podName, "pod-name", "p", "k-logs-test", "The pod name")
+	runCmd.Flags().StringVarP(&namespaceName, "namespace", "n", "default", "The pod namespace")
+	runCmd.Flags().StringVarP(&elasticAddr, "elastic-endpoint", "e", "https://localhost:9200/fluentd", "The ElasticSearch Endpoint and the logs index name")
 }

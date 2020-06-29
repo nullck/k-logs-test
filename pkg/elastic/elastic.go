@@ -4,13 +4,20 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
+	"strings"
 
 	"github.com/elastic/go-elasticsearch/v7"
 )
 
 // https://github.com/elastic/go-elasticsearch#go-elasticsearch
-func Search(elasticAddr, indexName, podName string) {
+func Search(elasticAddr, podName string) (string, error) {
+	fmt.Println(elasticAddr, podName)
+	i := strings.Split(elasticAddr, "/")
+	indexName := i[3]
+	fmt.Println(indexName)
+
 	cfg := elasticsearch.Config{
 		Addresses: []string{
 			elasticAddr,
@@ -71,4 +78,5 @@ func Search(elasticAddr, indexName, podName string) {
 		int(r["hits"].(map[string]interface{})["total"].(float64)),
 		int(r["took"].(float64)),
 	)
+	return "", nil
 }
