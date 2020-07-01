@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"strings"
 
@@ -13,10 +12,9 @@ import (
 
 // https://github.com/elastic/go-elasticsearch#go-elasticsearch
 func Search(elasticAddr, podName string) (string, error) {
-	fmt.Println(elasticAddr, podName)
 	i := strings.Split(elasticAddr, "/")
 	indexName := i[3]
-	fmt.Println(indexName)
+	elasticAddr = strings.Replace(elasticAddr, "/"+indexName, "", 1)
 
 	cfg := elasticsearch.Config{
 		Addresses: []string{

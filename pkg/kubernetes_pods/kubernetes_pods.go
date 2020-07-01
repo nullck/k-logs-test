@@ -13,7 +13,8 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-func CreatePod(podName, namespaceName string) (string, error) {
+func CreatePod(podName string, logsHits int, namespaceName string) (string, error) {
+	fmt.Println(logsHits)
 	var kubeconfig *string
 	if home := homeDir(); home != "" {
 		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
