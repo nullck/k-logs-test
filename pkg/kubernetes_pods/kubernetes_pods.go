@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -14,7 +15,6 @@ import (
 )
 
 func CreatePod(podName string, logsHits int, namespaceName string) (string, error) {
-	fmt.Println(logsHits)
 	var kubeconfig *string
 	if home := homeDir(); home != "" {
 		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
@@ -49,7 +49,7 @@ func CreatePod(podName string, logsHits int, namespaceName string) (string, erro
 						},
 					},
 					Command: []string{
-						"/bin/sh", "-ec", "while :; do echo \"$POD_NAME: hello logs\"; sleep 5 ; done",
+						"/bin/sh", "-ec", "for i in `seq 1 ${LOGS_HITS}`; do echo \"$POD_NAME: `date +\"%Y-%m-%dT%T\"`\"; done",
 					},
 					Env: []apiv1.EnvVar{
 						{
@@ -60,17 +60,21 @@ func CreatePod(podName string, logsHits int, namespaceName string) (string, erro
 								},
 							},
 						},
+						{
+							Name:  "LOGS_HITS",
+							Value: strconv.Itoa(logsHits),
+						},
 					},
 				},
 			},
 		},
 	}
-	fmt.Println("Creating the pod ...")
+	fmt.Printf("creating pod \"%s\" . . .\n", podName)
 	result, err := podsClient.Create(context.TODO(), pod, metav1.CreateOptions{})
 	if err != nil {
 		return "", err
 	}
-	fmt.Printf("Pod created %q.\n", result.GetObjectMeta().GetName())
+	fmt.Printf("pod created %q!\n", result.GetObjectMeta().GetName())
 	return result.GetObjectMeta().GetName(), nil
 }
 
