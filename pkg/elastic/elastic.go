@@ -29,6 +29,7 @@ func Search(elasticAddr, podName string, logsHits int) (string, error) {
 	var buf bytes.Buffer
 	var r map[string]interface{}
 	logsMatch := 0
+	var logsMsgTimestamp []string
 
 	for logsMatch <= logsHits {
 		query := map[string]interface{}{
@@ -69,7 +70,7 @@ func Search(elasticAddr, podName string, logsHits int) (string, error) {
 			log.Fatalf("Error parsing the response body: %s", err)
 		}
 		if int(r["hits"].(map[string]interface{})["total"].(float64)) <= logsHits {
-			fmt.Println("logs lower than hits")
+			fmt.Println("logs number lower than hits")
 			time.Sleep(2 * time.Second)
 		} else {
 			logsMatch = int(r["hits"].(map[string]interface{})["total"].(float64))
@@ -85,7 +86,9 @@ func Search(elasticAddr, podName string, logsHits int) (string, error) {
 			int(r["took"].(float64)),
 		)
 		for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
+			logsMsgTimestamp = strings.Split((hit.(map[string]interface{})["_source"].(map[string]interface{})["log"]), ".")
 			log.Printf(" * ID=%s, %s", hit.(map[string]interface{})["_id"], hit.(map[string]interface{})["_source"])
+			log.Printf(" * LogsMesssageTimestamp=%s", logsMsgTimestamp[0])
 		}
 		fmt.Println(int(r["hits"].(map[string]interface{})["total"].(float64)))
 	}
