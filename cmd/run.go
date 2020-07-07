@@ -46,7 +46,7 @@ k-logs-test run --pod-name test-logs --logs-hits 30 --namespace logs --elastic-e
 		}
 		fmt.Printf("sleeping %d seconds...\n", logsHits)
 		time.Sleep(time.Duration(logsHits) * time.Second)
-		elasticRes, err = elastic.Search(elasticAddr, podName)
+		elasticRes, err = elastic.Search(elasticAddr, podName, logsHits)
 	},
 }
 
