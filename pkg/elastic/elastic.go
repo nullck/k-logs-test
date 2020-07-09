@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -29,7 +30,6 @@ func Search(elasticAddr, podName string, logsHits int) (string, error) {
 	var buf bytes.Buffer
 	var r map[string]interface{}
 	logsMatch := 0
-	var logsMsgTimestamp []string
 
 	for logsMatch <= logsHits {
 		query := map[string]interface{}{
@@ -75,20 +75,12 @@ func Search(elasticAddr, podName string, logsHits int) (string, error) {
 		} else {
 			logsMatch = int(r["hits"].(map[string]interface{})["total"].(float64))
 		}
-		//Print the timestamp for each hit.
+		re := regexp.MustCompile(`\d{4}\-\d{1,2}\-\d{1,2}T\d{1,2}\:\d{1,2}\:\d{1,2}$`)
 		for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
 			log.Printf("timestamp=%s", hit.(map[string]interface{})["_source"].(map[string]interface{})["@timestamp"])
-		}
-		// Print the response status, number of results, and request duration.
-		log.Printf(
-			"%d hits; took: %dms\n",
-			int(r["hits"].(map[string]interface{})["total"].(float64)),
-			int(r["took"].(float64)),
-		)
-		for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
-			logsMsgTimestamp = strings.Split((hit.(map[string]interface{})["_source"].(map[string]interface{})["log"]), ".")
-			log.Printf(" * ID=%s, %s", hit.(map[string]interface{})["_id"], hit.(map[string]interface{})["_source"])
-			log.Printf(" * LogsMesssageTimestamp=%s", logsMsgTimestamp[0])
+			logsMsgTimestamp := fmt.Sprintf("%v", hit.(map[string]interface{})["_source"].(map[string]interface{})["log"])
+			logTime := re.FindAllString(logsMsgTimestamp, 1)
+			log.Printf("container timestamp=%s", logTime[0])
 		}
 		fmt.Println(int(r["hits"].(map[string]interface{})["total"].(float64)))
 	}
