@@ -77,10 +77,13 @@ func Search(elasticAddr, podName string, logsHits int) (string, error) {
 		}
 		re := regexp.MustCompile(`\d{4}\-\d{1,2}\-\d{1,2}T\d{1,2}\:\d{1,2}\:\d{1,2}$`)
 		for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
-			log.Printf("timestamp=%s", hit.(map[string]interface{})["_source"].(map[string]interface{})["@timestamp"])
-			logsMsgTimestamp := fmt.Sprintf("%v", hit.(map[string]interface{})["_source"].(map[string]interface{})["log"])
-			logTime := re.FindAllString(logsMsgTimestamp, 1)
-			log.Printf("container timestamp=%s", logTime[0])
+			elasticTimestamp := fmt.Sprintf("%v", hit.(map[string]interface{})["_source"].(map[string]interface{})["@timestamp"])
+			elasticTime := strings.Split(elasticTimestamp, ".")
+			log.Printf("elastic timestamp=%s", elasticTime[0])
+			containerMsgTimestamp := fmt.Sprintf("%v", hit.(map[string]interface{})["_source"].(map[string]interface{})["log"])
+			containerTime := re.FindAllString(containerMsgTimestamp, 1)
+			log.Printf("container timestamp=%s", containerTime[0])
+			// diff = https://medium.com/@ishagirdhar/golang-how-to-subtract-two-time-objects-3e35bfd125d
 		}
 		fmt.Println(int(r["hits"].(map[string]interface{})["total"].(float64)))
 	}
