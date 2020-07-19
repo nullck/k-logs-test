@@ -3,7 +3,7 @@ package kubernetes_pods
 import (
 	"context"
 	"flag"
-	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -69,12 +69,12 @@ func CreatePod(podName string, logsHits int, namespaceName string) (string, erro
 			},
 		},
 	}
-	fmt.Printf("creating pod \"%s\" . . .\n", podName)
+	log.Printf("pod \"%s\" is being created ...", podName)
 	result, err := podsClient.Create(context.TODO(), pod, metav1.CreateOptions{})
 	if err != nil {
 		return "", err
 	}
-	fmt.Printf("pod created %q!\n", result.GetObjectMeta().GetName())
+	log.Printf("pod created \"%q\"", result.GetObjectMeta().GetName())
 	return result.GetObjectMeta().GetName(), nil
 }
 

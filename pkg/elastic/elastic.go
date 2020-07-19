@@ -15,7 +15,7 @@ import (
 
 // https://github.com/elastic/go-elasticsearch#go-elasticsearch
 func Search(elasticAddr, podName string, logsHits int) (string, error) {
-	fmt.Println(podName)
+	log.Printf("podName %s", podName)
 	i := strings.Split(elasticAddr, "/")
 	indexName := i[3]
 	elasticAddr = strings.Replace(elasticAddr, "/"+indexName, "", 1)
@@ -51,13 +51,13 @@ func Search(elasticAddr, podName string, logsHits int) (string, error) {
 			es.Search.WithPretty(),
 		)
 		if err != nil {
-			log.Fatalf("Error getting response: %s", err)
+			log.Fatalf("error getting response: %s", err)
 		}
 		defer res.Body.Close()
 		if res.IsError() {
 			var e map[string]interface{}
 			if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
-				log.Fatalf("Error parsing the response body: %s", err)
+				log.Fatalf("error parsing the response body: %s", err)
 			} else {
 				// Print the response status and error information.
 				log.Fatalf("[%s] %s: %s",
@@ -68,11 +68,11 @@ func Search(elasticAddr, podName string, logsHits int) (string, error) {
 			}
 		}
 		if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
-			log.Fatalf("Error parsing the response body: %s", err)
+			log.Fatalf("error parsing the response body: %s", err)
 		}
 		if int(r["hits"].(map[string]interface{})["total"].(float64)) <= logsHits {
-			fmt.Println("logs number lower than hits")
-			time.Sleep(2 * time.Second)
+			log.Printf("total logs lower than log-hits specified ... wait")
+			time.Sleep(1 * time.Second)
 		} else {
 			logsMatch = int(r["hits"].(map[string]interface{})["total"].(float64))
 		}
@@ -87,13 +87,13 @@ func Search(elasticAddr, podName string, logsHits int) (string, error) {
 			elasticTimeP, _ := time.Parse(timeLayout, elasticTime[0])
 			containerTimeP, _ := time.Parse(timeLayout, containerTime[0])
 
-			log.Printf("container timestamp=%s", containerTimeP)
-			log.Printf("elastic timestamp=%s", elasticTimeP)
+			log.Printf("container log timestamp=%s", containerTimeP)
+			log.Printf("elasticsearch log timestamp=%s", elasticTimeP)
 
-			log.Printf("the diff in Seconds is: %v", elasticTimeP.Sub(containerTimeP).Seconds())
+			log.Printf("logs delay in: %v seconds", elasticTimeP.Sub(containerTimeP).Seconds())
 
 		}
-		log.Printf("logs hits %d", int(r["hits"].(map[string]interface{})["total"].(float64)))
+		log.Printf("total logs hits %d", int(r["hits"].(map[string]interface{})["total"].(float64)))
 	}
 	return "", nil
 }
