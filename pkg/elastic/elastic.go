@@ -90,7 +90,7 @@ func Search(elasticAddr, podName string, logsHits int) (string, error) {
 			log.Printf("container log timestamp=%s", containerTimeP)
 			log.Printf("elasticsearch log timestamp=%s", elasticTimeP)
 
-			log.Printf("logs delay in: %v seconds", elasticTimeP.Sub(containerTimeP).Seconds())
+			log.Printf("logs delayed in: %v seconds", elasticTimeP.Sub(containerTimeP).Seconds())
 
 		}
 		log.Printf("total logs hits %d", int(r["hits"].(map[string]interface{})["total"].(float64)))
