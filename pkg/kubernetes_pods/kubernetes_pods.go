@@ -84,8 +84,6 @@ func CreatePod(podName, namespaceName string, logsHits int) (string, error) {
 }
 
 func DeletePod(podName, namespaceName string) (string, error) {
-	log.Printf("pod \"%s\" is being deleted ...", podName)
-
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
 	if err != nil {
 		panic(err.Error())
@@ -98,9 +96,9 @@ func DeletePod(podName, namespaceName string) (string, error) {
 	}
 
 	podsClient := clientset.CoreV1().Pods(namespaceName)
-
 	deletePolicy := metav1.DeletePropagationForeground
 
+	log.Printf("pod \"%s\" is being deleted ...", podName)
 	if err := podsClient.Delete(context.TODO(), podName, metav1.DeleteOptions{
 		PropagationPolicy: &deletePolicy,
 	}); err != nil {
