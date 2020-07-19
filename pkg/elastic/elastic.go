@@ -29,6 +29,7 @@ func Search(elasticAddr, podName string, logsHits int) (string, error) {
 
 	var buf bytes.Buffer
 	var r map[string]interface{}
+	var timeLayout = "2006-01-02T15:04:05"
 	logsMatch := 0
 
 	for logsMatch <= logsHits {
@@ -79,13 +80,20 @@ func Search(elasticAddr, podName string, logsHits int) (string, error) {
 		for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
 			elasticTimestamp := fmt.Sprintf("%v", hit.(map[string]interface{})["_source"].(map[string]interface{})["@timestamp"])
 			elasticTime := strings.Split(elasticTimestamp, ".")
-			log.Printf("elastic timestamp=%s", elasticTime[0])
+
 			containerMsgTimestamp := fmt.Sprintf("%v", hit.(map[string]interface{})["_source"].(map[string]interface{})["log"])
 			containerTime := re.FindAllString(containerMsgTimestamp, 1)
-			log.Printf("container timestamp=%s", containerTime[0])
-			// diff = https://medium.com/@ishagirdhar/golang-how-to-subtract-two-time-objects-3e35bfd125d
+
+			elasticTimeP, _ := time.Parse(timeLayout, elasticTime[0])
+			containerTimeP, _ := time.Parse(timeLayout, containerTime[0])
+
+			log.Printf("container timestamp=%s", containerTimeP)
+			log.Printf("elastic timestamp=%s", elasticTimeP)
+
+			log.Printf("the diff in Seconds is: %v", elasticTimeP.Sub(containerTimeP).Seconds())
+
 		}
-		fmt.Println(int(r["hits"].(map[string]interface{})["total"].(float64)))
+		log.Printf("logs hits %d", int(r["hits"].(map[string]interface{})["total"].(float64)))
 	}
 	return "", nil
 }
