@@ -40,14 +40,21 @@ var runCmd = &cobra.Command{
 
 k-logs-test run --pod-name test-logs --logs-hits 30 --namespace logs --elastic-endpoint https://localhost:9200/fluentd-2020`,
 	Run: func(cmd *cobra.Command, args []string) {
-		_, err := kubernetes_pods.CreatePod(podName, logsHits, namespaceName)
+		_, err := kubernetes_pods.CreatePod(podName, namespaceName, logsHits)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
+
 		log.Printf("k-logs checking total pods logs %d ...\n", logsHits)
 		time.Sleep(time.Duration(logsHits) * time.Second)
 		elasticRes, err = elastic.Search(elasticAddr, podName, logsHits)
+
+		_, err = kubernetes_pods.DeletePod(podName, namespaceName)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 	},
 }
 
