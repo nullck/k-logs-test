@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -44,7 +45,7 @@ k-logs-test run --pod-name test-logs --logs-hits 30 --namespace logs --elastic-e
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		fmt.Printf("sleeping %d seconds...\n", logsHits)
+		log.Printf("k-logs checking total pods logs %d ...\n", logsHits)
 		time.Sleep(time.Duration(logsHits) * time.Second)
 		elasticRes, err = elastic.Search(elasticAddr, podName, logsHits)
 	},
