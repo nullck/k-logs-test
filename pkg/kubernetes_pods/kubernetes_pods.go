@@ -14,13 +14,15 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-func CreatePod(podName string, logsHits int, namespaceName string) (string, error) {
-	var kubeconfig *string
+var kubeconfig *string
+
+func CreatePod(podName, namespaceName string, logsHits int) (string, error) {
 	if home := homeDir(); home != "" {
 		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
 	} else {
 		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
 	}
+
 	flag.Parse()
 
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
@@ -33,7 +35,9 @@ func CreatePod(podName string, logsHits int, namespaceName string) (string, erro
 	if err != nil {
 		panic(err.Error())
 	}
+
 	podsClient := clientset.CoreV1().Pods(namespaceName)
+
 	pod := &apiv1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: podName,
@@ -69,6 +73,7 @@ func CreatePod(podName string, logsHits int, namespaceName string) (string, erro
 			},
 		},
 	}
+
 	log.Printf("pod \"%s\" is being created ...", podName)
 	result, err := podsClient.Create(context.TODO(), pod, metav1.CreateOptions{})
 	if err != nil {
@@ -76,6 +81,33 @@ func CreatePod(podName string, logsHits int, namespaceName string) (string, erro
 	}
 	log.Printf("pod created \"%q\"", result.GetObjectMeta().GetName())
 	return result.GetObjectMeta().GetName(), nil
+}
+
+func DeletePod(podName, namespaceName string) (string, error) {
+	log.Printf("pod \"%s\" is being deleted ...", podName)
+
+	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	// creating the clientset
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	podsClient := clientset.CoreV1().Pods(namespaceName)
+
+	deletePolicy := metav1.DeletePropagationForeground
+
+	if err := podsClient.Delete(context.TODO(), podName, metav1.DeleteOptions{
+		PropagationPolicy: &deletePolicy,
+	}); err != nil {
+		return "", err
+	}
+	log.Printf("pod deleted \"%s\"", podName)
+	return podName, nil
 }
 
 func homeDir() string {
