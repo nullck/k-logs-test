@@ -30,6 +30,7 @@ func Search(elasticAddr, podName string, logsHits int) (string, error) {
 	var buf bytes.Buffer
 	var r map[string]interface{}
 	var timeLayout = "2006-01-02T15:04:05"
+	status := "OK"
 	logsMatch := 0
 
 	for logsMatch <= logsHits {
@@ -91,9 +92,8 @@ func Search(elasticAddr, podName string, logsHits int) (string, error) {
 			log.Printf("elasticsearch log timestamp=%s", elasticTimeP)
 
 			log.Printf("logs delayed in: %v seconds", elasticTimeP.Sub(containerTimeP).Seconds())
-
 		}
 		log.Printf("total logs hits %d", int(r["hits"].(map[string]interface{})["total"].(float64)))
 	}
-	return "", nil
+	return status, nil
 }
