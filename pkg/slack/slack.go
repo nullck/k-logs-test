@@ -6,14 +6,21 @@ import (
 	"github.com/ashwanthkumar/slack-go-webhook"
 )
 
-func SlackNotification(webhookUrl, username, message, channel string) error {
+type Slack struct {
+	webhookUrl string
+	username   string
+	channel    string
+	message    string
+}
+
+func (s *Slack) Notification() error {
 	payload := slack.Payload{
-		Text:      message,
-		Username:  username,
-		Channel:   channel,
+		Text:      s.message,
+		Username:  s.username,
+		Channel:   s.channel,
 		IconEmoji: ":monkey_face:",
 	}
-	err := slack.Send(webhookUrl, "", payload)
+	err := slack.Send(s.webhookUrl, "", payload)
 	if len(err) > 0 {
 		fmt.Printf("error: %s\n", err)
 	}
