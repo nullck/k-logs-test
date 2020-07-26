@@ -16,9 +16,7 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"github.com/nullck/k-logs-test/pkg/elastic"
@@ -52,35 +50,32 @@ k-logs-test run --pod-name test-logs --logs-hits 30 --namespace logs --elastic-e
 	Run: func(cmd *cobra.Command, args []string) {
 		_, err := kubernetes_pods.CreatePod(podName, namespaceName, logsHits)
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			log.Fatalln(err)
 		}
 
 		log.Printf("k-logs checking total pods logs %d ...\n", logsHits)
 		time.Sleep(time.Duration(logsHits) * time.Second)
 		elasticRes, err = elastic.Search(elasticAddr, podName, logsHits, threshold)
-		fmt.Println(elasticRes)
+		log.Printf("status: %v\n", elasticRes)
 
 		_, err = kubernetes_pods.DeletePod(podName, namespaceName)
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			log.Fatalln(err)
 		}
 
-		if slackAlertEnabled {
-			fmt.Println(threshold)
-			fmt.Println(slackChannel)
-			fmt.Println(slackWebhookUrl)
-			slackMsg = "error"
-			sl := s{
-				WebhookUrl: slackWebhookUrl,
-				Username:   "k-logs",
-				Channel:    slackChannel,
-			}
-			err = sl.Notification(slackMsg)
-			if err != nil {
-				fmt.Println(err)
-				os.Exit(1)
+		if elasticRes == "ALERT" {
+			if slackAlertEnabled {
+				slackMsg = "error: k-logs threshold reached!"
+				sl := s{
+					WebhookUrl: slackWebhookUrl,
+					Username:   "k-logs",
+					Channel:    slackChannel,
+				}
+				err = sl.Notification(slackMsg)
+				log.Printf("slack notification sent: %v\n", slackMsg)
+				if err != nil {
+					log.Fatalln(err)
+				}
 			}
 		}
 	},
