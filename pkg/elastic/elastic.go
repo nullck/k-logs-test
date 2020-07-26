@@ -13,9 +13,14 @@ import (
 	"github.com/elastic/go-elasticsearch/v7"
 )
 
-// https://github.com/elastic/go-elasticsearch#go-elasticsearch
-func Search(elasticAddr, podName string, logsHits int) (string, error) {
-	log.Printf("podName %s", podName)
+var buf bytes.Buffer
+var r map[string]interface{}
+var e map[string]interface{}
+var timeLayout = "2006-01-02T15:04:05"
+var status = "OK"
+var logsMatch = 0
+
+func Search(elasticAddr, podName string, logsHits, threshold int) (string, error) {
 	i := strings.Split(elasticAddr, "/")
 	indexName := i[3]
 	elasticAddr = strings.Replace(elasticAddr, "/"+indexName, "", 1)
@@ -26,11 +31,6 @@ func Search(elasticAddr, podName string, logsHits int) (string, error) {
 		},
 	}
 	es, _ := elasticsearch.NewClient(cfg)
-
-	var buf bytes.Buffer
-	var r map[string]interface{}
-	var timeLayout = "2006-01-02T15:04:05"
-	logsMatch := 0
 
 	for logsMatch <= logsHits {
 		query := map[string]interface{}{
@@ -55,7 +55,6 @@ func Search(elasticAddr, podName string, logsHits int) (string, error) {
 		}
 		defer res.Body.Close()
 		if res.IsError() {
-			var e map[string]interface{}
 			if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
 				log.Fatalf("error parsing the response body: %s", err)
 			} else {
@@ -76,7 +75,9 @@ func Search(elasticAddr, podName string, logsHits int) (string, error) {
 		} else {
 			logsMatch = int(r["hits"].(map[string]interface{})["total"].(float64))
 		}
+
 		re := regexp.MustCompile(`\d{4}\-\d{1,2}\-\d{1,2}T\d{1,2}\:\d{1,2}\:\d{1,2}$`)
+
 		for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
 			elasticTimestamp := fmt.Sprintf("%v", hit.(map[string]interface{})["_source"].(map[string]interface{})["@timestamp"])
 			elasticTime := strings.Split(elasticTimestamp, ".")
@@ -86,14 +87,17 @@ func Search(elasticAddr, podName string, logsHits int) (string, error) {
 
 			elasticTimeP, _ := time.Parse(timeLayout, elasticTime[0])
 			containerTimeP, _ := time.Parse(timeLayout, containerTime[0])
+			timeDiff := elasticTimeP.Sub(containerTimeP).Seconds()
 
-			log.Printf("container log timestamp=%s", containerTimeP)
-			log.Printf("elasticsearch log timestamp=%s", elasticTimeP)
-
-			log.Printf("logs delayed in: %v seconds", elasticTimeP.Sub(containerTimeP).Seconds())
-
+			log.Printf("container timestamp=%s\n elastic timestamp=%s", containerTimeP, elasticTimeP)
+			if threshold > 0 {
+				if float64(threshold) < timeDiff {
+					status = "ALERT"
+				}
+			}
+			log.Printf("logs delayed in: %v seconds", timeDiff)
 		}
-		log.Printf("total logs hits %d", int(r["hits"].(map[string]interface{})["total"].(float64)))
+		log.Printf("total logs %d", int(r["hits"].(map[string]interface{})["total"].(float64)))
 	}
-	return "", nil
+	return status, nil
 }
