@@ -23,6 +23,7 @@ import (
 
 	"github.com/nullck/k-logs-test/pkg/elastic"
 	"github.com/nullck/k-logs-test/pkg/kubernetes_pods"
+	"github.com/nullck/k-logs-test/pkg/slack"
 	"github.com/spf13/cobra"
 )
 
@@ -37,6 +38,9 @@ var slackAlertEnabled bool
 var alertThreshold int
 var slackChannel string
 var slackWebhookUrl string
+var slackMsg string
+
+type s = slack.Slack
 
 // runCmd represents the run command
 var runCmd = &cobra.Command{
@@ -44,7 +48,7 @@ var runCmd = &cobra.Command{
 	Short: "Start the test components",
 	Long: `Execute run to start the test components. For example:
 
-k-logs-test run --pod-name test-logs --logs-hits 30 --namespace logs --elastic-endpoint https://localhost:9200/fluentd-2020 --slack-alert-enabled true --threshold 10 --webhook-url https://hooks.slack.com/services/XXX --channel general`,
+k-logs-test run --pod-name test-logs --logs-hits 30 --namespace logs --elastic-endpoint https://localhost:9200/fluentd-2020 --slack-alert-enabled true --threshold 10 --webhook-url https://hooks.slack.com/services/XXX --channel #general`,
 	Run: func(cmd *cobra.Command, args []string) {
 		_, err := kubernetes_pods.CreatePod(podName, namespaceName, logsHits)
 		if err != nil {
@@ -67,6 +71,17 @@ k-logs-test run --pod-name test-logs --logs-hits 30 --namespace logs --elastic-e
 			fmt.Println(threshold)
 			fmt.Println(slackChannel)
 			fmt.Println(slackWebhookUrl)
+			slackMsg = "error"
+			sl := s{
+				WebhookUrl: slackWebhookUrl,
+				Username:   "k-logs",
+				Channel:    slackChannel,
+			}
+			err = sl.Notification(slackMsg)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
 		}
 	},
 }
@@ -79,6 +94,6 @@ func init() {
 	runCmd.Flags().StringVarP(&elasticAddr, "elastic-endpoint", "e", "https://localhost:9200/fluentd", "The ElasticSearch Endpoint and the logs index name")
 	runCmd.Flags().BoolVarP(&slackAlertEnabled, "slack-alert-enabled", "a", false, "Enable or not slack alerts")
 	runCmd.Flags().IntVar(&threshold, "threshold", 0, "The Alert Threshould in seconds")
-	runCmd.Flags().StringVarP(&slackChannel, "channel", "c", "k-logs", "The Slack Channel for notification")
+	runCmd.Flags().StringVarP(&slackChannel, "channel", "c", "#k-logs", "The Slack Channel for notification")
 	runCmd.Flags().StringVarP(&slackWebhookUrl, "webhook-url", "w", "", "The Slack Webhook Url for notification")
 }

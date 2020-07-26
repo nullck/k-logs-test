@@ -1,4 +1,4 @@
-package main
+package slack
 
 import (
 	"fmt"
@@ -7,20 +7,19 @@ import (
 )
 
 type Slack struct {
-	webhookUrl string
-	username   string
-	channel    string
-	message    string
+	WebhookUrl string
+	Username   string
+	Channel    string
 }
 
-func (s *Slack) Notification() error {
+func (s Slack) Notification(message string) error {
 	payload := slack.Payload{
-		Text:      s.message,
-		Username:  s.username,
-		Channel:   s.channel,
+		Text:      message,
+		Username:  s.Username,
+		Channel:   s.Channel,
 		IconEmoji: ":monkey_face:",
 	}
-	err := slack.Send(s.webhookUrl, "", payload)
+	err := slack.Send(s.WebhookUrl, "", payload)
 	if len(err) > 0 {
 		fmt.Printf("error: %s\n", err)
 	}

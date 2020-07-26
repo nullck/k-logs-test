@@ -3,7 +3,7 @@ module github.com/nullck/k-logs-test
 go 1.14
 
 require (
-	github.com/ashwanthkumar/slack-go-webhook v0.0.0-20181119091704-2a72312a9c79 // indirect
+	github.com/ashwanthkumar/slack-go-webhook v0.0.0-20181119091704-2a72312a9c79
 	github.com/elastic/go-elasticsearch/v7 v7.7.0
 	github.com/imdario/mergo v0.3.9 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
