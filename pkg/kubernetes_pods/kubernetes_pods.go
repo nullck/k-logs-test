@@ -14,9 +14,14 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+type Pod struct {
+	PodName       string
+	NamespaceName string
+}
+
 var kubeconfig *string
 
-func CreatePod(podName, namespaceName string, logsHits int) (string, error) {
+func (p Pod) CreatePod(logsHits int) (string, error) {
 	if home := homeDir(); home != "" {
 		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
 	} else {
@@ -36,16 +41,16 @@ func CreatePod(podName, namespaceName string, logsHits int) (string, error) {
 		panic(err.Error())
 	}
 
-	podsClient := clientset.CoreV1().Pods(namespaceName)
+	podsClient := clientset.CoreV1().Pods(p.NamespaceName)
 
 	pod := &apiv1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: podName,
+			Name: p.PodName,
 		},
 		Spec: apiv1.PodSpec{
 			Containers: []apiv1.Container{
 				{
-					Name:  podName,
+					Name:  p.PodName,
 					Image: "busybox",
 					Ports: []apiv1.ContainerPort{
 						{
@@ -74,7 +79,7 @@ func CreatePod(podName, namespaceName string, logsHits int) (string, error) {
 		},
 	}
 
-	log.Printf("pod \"%s\" is being created ...", podName)
+	log.Printf("pod \"%s\" is being created ...", p.PodName)
 	result, err := podsClient.Create(context.TODO(), pod, metav1.CreateOptions{})
 	if err != nil {
 		return "", err
@@ -83,7 +88,7 @@ func CreatePod(podName, namespaceName string, logsHits int) (string, error) {
 	return result.GetObjectMeta().GetName(), nil
 }
 
-func DeletePod(podName, namespaceName string) (string, error) {
+func (p Pod) DeletePod() (string, error) {
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
 	if err != nil {
 		panic(err.Error())
@@ -95,17 +100,17 @@ func DeletePod(podName, namespaceName string) (string, error) {
 		panic(err.Error())
 	}
 
-	podsClient := clientset.CoreV1().Pods(namespaceName)
+	podsClient := clientset.CoreV1().Pods(p.NamespaceName)
 	deletePolicy := metav1.DeletePropagationForeground
 
-	log.Printf("pod \"%s\" is being deleted ...", podName)
-	if err := podsClient.Delete(context.TODO(), podName, metav1.DeleteOptions{
+	log.Printf("pod \"%s\" is being deleted ...", p.PodName)
+	if err := podsClient.Delete(context.TODO(), p.PodName, metav1.DeleteOptions{
 		PropagationPolicy: &deletePolicy,
 	}); err != nil {
 		return "", err
 	}
-	log.Printf("pod deleted \"%s\"", podName)
-	return podName, nil
+	log.Printf("pod deleted \"%s\"", p.PodName)
+	return p.PodName, nil
 }
 
 func homeDir() string {
