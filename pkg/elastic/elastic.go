@@ -13,17 +13,24 @@ import (
 	"github.com/elastic/go-elasticsearch/v7"
 )
 
+type ES struct {
+	ElasticAddr string
+	PodName     string
+	LogsHits    int
+	Threshold   int
+}
+
 var buf bytes.Buffer
 var r map[string]interface{}
-var e map[string]interface{}
+var ej map[string]interface{}
 var timeLayout = "2006-01-02T15:04:05"
 var status = "OK"
 var logsMatch = 0
 
-func Search(elasticAddr, podName string, logsHits, threshold int) (string, error) {
-	i := strings.Split(elasticAddr, "/")
+func (e ES) Search() (string, error) {
+	i := strings.Split(e.ElasticAddr, "/")
 	indexName := i[3]
-	elasticAddr = strings.Replace(elasticAddr, "/"+indexName, "", 1)
+	elasticAddr := strings.Replace(e.ElasticAddr, "/"+indexName, "", 1)
 
 	cfg := elasticsearch.Config{
 		Addresses: []string{
@@ -32,11 +39,11 @@ func Search(elasticAddr, podName string, logsHits, threshold int) (string, error
 	}
 	es, _ := elasticsearch.NewClient(cfg)
 
-	for logsMatch <= logsHits {
+	for logsMatch <= e.LogsHits {
 		query := map[string]interface{}{
 			"query": map[string]interface{}{
 				"match": map[string]interface{}{
-					"kubernetes.pod_name": podName,
+					"kubernetes.pod_name": e.PodName,
 				},
 			},
 		}
@@ -55,21 +62,21 @@ func Search(elasticAddr, podName string, logsHits, threshold int) (string, error
 		}
 		defer res.Body.Close()
 		if res.IsError() {
-			if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
+			if err := json.NewDecoder(res.Body).Decode(&ej); err != nil {
 				log.Fatalf("error parsing the response body: %s", err)
 			} else {
 				// Print the response status and error information.
 				log.Fatalf("[%s] %s: %s",
 					res.Status(),
-					e["error"].(map[string]interface{})["type"],
-					e["error"].(map[string]interface{})["reason"],
+					ej["error"].(map[string]interface{})["type"],
+					ej["error"].(map[string]interface{})["reason"],
 				)
 			}
 		}
 		if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
 			log.Fatalf("error parsing the response body: %s", err)
 		}
-		if int(r["hits"].(map[string]interface{})["total"].(float64)) <= logsHits {
+		if int(r["hits"].(map[string]interface{})["total"].(float64)) <= e.LogsHits {
 			log.Printf("total logs lower than log-hits specified ... wait")
 			time.Sleep(1 * time.Second)
 		} else {
@@ -90,8 +97,8 @@ func Search(elasticAddr, podName string, logsHits, threshold int) (string, error
 			timeDiff := elasticTimeP.Sub(containerTimeP).Seconds()
 
 			log.Printf("container timestamp=%s\n elastic timestamp=%s", containerTimeP, elasticTimeP)
-			if threshold > 0 {
-				if float64(threshold) < timeDiff {
+			if e.Threshold > 0 {
+				if float64(e.Threshold) < timeDiff {
 					status = "ALERT"
 				}
 			}

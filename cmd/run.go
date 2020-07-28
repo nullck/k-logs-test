@@ -40,6 +40,7 @@ var slackMsg string
 
 type s = slack.Slack
 type p = kubernetes_pods.Pod
+type e = elastic.ES
 
 // runCmd represents the run command
 var runCmd = &cobra.Command{
@@ -61,7 +62,14 @@ k-logs-test run --pod-name test-logs --logs-hits 30 --namespace logs --elastic-e
 
 		log.Printf("k-logs checking total pods logs %d ...\n", logsHits)
 		time.Sleep(time.Duration(logsHits) * time.Second)
-		elasticRes, err = elastic.Search(elasticAddr, podName, logsHits, threshold)
+		es := e{
+			ElasticAddr: elasticAddr,
+			PodName:     podName,
+			LogsHits:    logsHits,
+			Threshold:   threshold,
+		}
+
+		elasticRes, err = es.Search()
 		log.Printf("status: %v\n", elasticRes)
 
 		_, err = po.DeletePod()
