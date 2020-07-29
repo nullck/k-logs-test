@@ -39,6 +39,8 @@ var slackWebhookUrl string
 var slackMsg string
 
 type s = slack.Slack
+type p = kubernetes_pods.Pod
+type e = elastic.ES
 
 // runCmd represents the run command
 var runCmd = &cobra.Command{
@@ -48,17 +50,29 @@ var runCmd = &cobra.Command{
 
 k-logs-test run --pod-name test-logs --logs-hits 30 --namespace logs --elastic-endpoint https://localhost:9200/fluentd-2020 --slack-alert-enabled true --threshold 10 --webhook-url https://hooks.slack.com/services/XXX --channel #general`,
 	Run: func(cmd *cobra.Command, args []string) {
-		_, err := kubernetes_pods.CreatePod(podName, namespaceName, logsHits)
+		po := p{
+			PodName:       podName,
+			NamespaceName: namespaceName,
+		}
+
+		_, err := po.CreatePod(logsHits)
 		if err != nil {
 			log.Fatalln(err)
 		}
 
 		log.Printf("k-logs checking total pods logs %d ...\n", logsHits)
 		time.Sleep(time.Duration(logsHits) * time.Second)
-		elasticRes, err = elastic.Search(elasticAddr, podName, logsHits, threshold)
+		es := e{
+			ElasticAddr: elasticAddr,
+			PodName:     podName,
+			LogsHits:    logsHits,
+			Threshold:   threshold,
+		}
+
+		elasticRes, err = es.Search()
 		log.Printf("status: %v\n", elasticRes)
 
-		_, err = kubernetes_pods.DeletePod(podName, namespaceName)
+		_, err = po.DeletePod()
 		if err != nil {
 			log.Fatalln(err)
 		}
