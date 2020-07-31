@@ -76,7 +76,7 @@ func (e ES) Search() (string, error) {
 		if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
 			log.Fatalf("error parsing the response body: %s", err)
 		}
-		if int(r["hits"].(map[string]interface{})["total"].(float64)) <= e.LogsHits {
+		if int(r["hits"].(map[string]interface{})["total"].(float64)) < e.LogsHits {
 			log.Printf("total logs lower than log-hits specified ... wait")
 			time.Sleep(1 * time.Second)
 		} else {
