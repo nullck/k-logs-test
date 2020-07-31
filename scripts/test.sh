@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if ! command -v kind &> /dev/null; then
+  echo "I cannot find the kind binary; please check your installation"
+  exit 1
+fi
+
 # check if thet kube-logs-test cluster exists
 CLUSTER_NAME="kube-logs-test"
 
