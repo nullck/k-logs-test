@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if ! command -v kind &> /dev/null; then
+  echo "I cannot find the kind binary; please check your installation"
+  exit 1
+fi
+
 # check if thet kube-logs-test cluster exists
 CLUSTER_NAME="kube-logs-test"
 
@@ -14,9 +19,13 @@ if [ "$1" == "start" ]; then
     kind create cluster --name ${CLUSTER_NAME};
     sleep 15;
   fi
-  kubectl apply -f test-pod.yaml
   kubectl apply -f fluentbit
   kubectl apply -f elastic
+  sleep 5
+  while ! kubectl get pods/elasticsearch-0 | grep "Running"; do
+    sleep 2
+  done
+  kubectl port-forward svc/elasticsearch 9200:9200
 fi
 
 if [ "$1" == "destroy" ]; then
