@@ -23,6 +23,9 @@ if [ "$1" == "start" ]; then
   kubectl apply -f fluentbit
   kubectl apply -f elastic
   sleep 10
+  while ! kubectl get pods/elasticsearch-0 | grep "Running"; do
+    sleep 2
+  done
   kubectl port-forward svc/elasticsearch 9200:9200
 fi
 
