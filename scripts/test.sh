@@ -19,9 +19,11 @@ if [ "$1" == "start" ]; then
     kind create cluster --name ${CLUSTER_NAME};
     sleep 15;
   fi
-  kubectl apply -f test-pod.yaml
+#  kubectl apply -f test-pod.yaml
   kubectl apply -f fluentbit
   kubectl apply -f elastic
+  sleep 10
+  kubectl port-forward svc/elasticsearch 9200:9200
 fi
 
 if [ "$1" == "destroy" ]; then
