@@ -29,7 +29,6 @@ var logsMatch = 0
 
 func (e ES) Search() (string, error) {
 	i := strings.Split(e.ElasticAddr, "/")
-	fmt.Println(i)
 	indexName := i[3]
 	elasticAddr := strings.Replace(e.ElasticAddr, "/"+indexName, "", 1)
 
