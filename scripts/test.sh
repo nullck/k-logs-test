@@ -22,7 +22,7 @@ if [ "$1" == "start" ]; then
 #  kubectl apply -f test-pod.yaml
   kubectl apply -f fluentbit
   kubectl apply -f elastic
-  sleep 10
+  sleep 5
   while ! kubectl get pods/elasticsearch-0 | grep "Running"; do
     sleep 2
   done
