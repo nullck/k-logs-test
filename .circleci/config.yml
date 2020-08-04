@@ -1,0 +1,11 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.14.6
+
+    working_directory: /go/src/github.com/nullck/k-logs-test
+    steps:
+      - checkout
+      - run: go get -v -t -d ./...
+      - run: go test -v ./pkg/...

@@ -27,7 +27,7 @@ var timeLayout = "2006-01-02T15:04:05"
 var status = "OK"
 var logsMatch = 0
 
-func (e ES) Search() (string, error) {
+func (e *ES) Search() (string, error) {
 	i := strings.Split(e.ElasticAddr, "/")
 	indexName := i[3]
 	elasticAddr := strings.Replace(e.ElasticAddr, "/"+indexName, "", 1)
@@ -39,7 +39,7 @@ func (e ES) Search() (string, error) {
 	}
 	es, _ := elasticsearch.NewClient(cfg)
 
-	for logsMatch <= e.LogsHits {
+	for logsMatch < e.LogsHits {
 		query := map[string]interface{}{
 			"query": map[string]interface{}{
 				"match": map[string]interface{}{
@@ -76,7 +76,7 @@ func (e ES) Search() (string, error) {
 		if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
 			log.Fatalf("error parsing the response body: %s", err)
 		}
-		if int(r["hits"].(map[string]interface{})["total"].(float64)) <= e.LogsHits {
+		if int(r["hits"].(map[string]interface{})["total"].(float64)) < e.LogsHits {
 			log.Printf("total logs lower than log-hits specified ... wait")
 			time.Sleep(1 * time.Second)
 		} else {
