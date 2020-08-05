@@ -7,4 +7,6 @@ jobs:
     working_directory: /go/src/github.com/nullck/k-logs-test
     steps:
       - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
       - run: make test-ci
