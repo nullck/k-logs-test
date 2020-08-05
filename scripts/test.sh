@@ -11,11 +11,11 @@ for i in kind kubectl; do
       echo "it is Linux"
       if [ "${i}" == "kind" ]; then
         curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.8.1/kind-linux-amd64
-        chmod +x ./kind && mv ./kind /usr/local/bin/kind
+        chmod +x ./kind && sudo mv ./kind /usr/local/bin/kind
       fi
       if [ "${i}" == "kubectl" ]; then
         curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
-        chmod +x kubectl && mv ./kubectl /usr/local/bin/kubectl
+        chmod +x kubectl && sudo mv ./kubectl /usr/local/bin/kubectl
       fi
     else
       echo "please check your installation"
