@@ -1,8 +1,11 @@
 .DEFAULT_GOAL := none
 
 
-test: ci-setup
+test-ci: ci-setup
 	go get -v -t -d ./..
+	go test ./pkg/...
+
+test: ci-setup
 	go test ./pkg/...
 
 ci-setup:

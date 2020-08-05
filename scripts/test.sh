@@ -1,21 +1,28 @@
 #!/bin/bash
 
-if ! command -v kind &> /dev/null; then
-  echo "I cannot find the kind binary"
-  echo "Trying to install if the OS is Linux"
+for i in kind kubectl; do
+  if ! command -v "${i}" &> /dev/null; then
+    echo "I cannot find the kind binary"
+    echo "Trying to install if the OS is Linux"
 
-  uname | grep "Linux"
+    uname | grep "Linux"
 
-  if [ $? == 0  ]; then
-    echo "it is Linux"
-    curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.8.1/kind-linux-amd64
-    chmod +x ./kind && mv ./kind /usr/local/bin/kind
-  else
-    echo "please check your installation"
-    exit 1
+    if [ $? == 0  ]; then
+      echo "it is Linux"
+      if [ "${i}" == "kind" ]; then
+        curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.8.1/kind-linux-amd64
+        chmod +x ./kind && mv ./kind /usr/local/bin/kind
+      fi
+      if [ "${i}" == "kubectl" ]; then
+        curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x kubectl && mv ./kubectl /usr/local/bin/kubectl
+      fi
+    else
+      echo "please check your installation"
+      exit 1
+    fi
   fi
-fi
-
+done
 # check if thet kube-logs-test cluster exists
 CLUSTER_NAME="kube-logs-test"
 

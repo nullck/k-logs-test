@@ -7,4 +7,4 @@ jobs:
     working_directory: /go/src/github.com/nullck/k-logs-test
     steps:
       - checkout
-      - run: make test
+      - run: make test-ci
