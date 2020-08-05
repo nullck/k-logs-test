@@ -1,8 +1,19 @@
 #!/bin/bash
 
 if ! command -v kind &> /dev/null; then
-  echo "I cannot find the kind binary; please check your installation"
-  exit 1
+  echo "I cannot find the kind binary"
+  echo "Trying to install if the OS is Linux"
+
+  uname | grep "Linux"
+
+  if [ $? == 0  ]; then
+    echo "it is Linux"
+    curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.8.1/kind-linux-amd64
+    chmod +x ./kind && mv ./kind /usr/local/bin/kind
+  else
+    echo "please check your installation"
+    exit 1
+  fi
 fi
 
 # check if thet kube-logs-test cluster exists
@@ -25,7 +36,7 @@ if [ "$1" == "start" ]; then
   while ! kubectl get pods/elasticsearch-0 | grep "Running"; do
     sleep 2
   done
-  kubectl port-forward svc/elasticsearch 9200:9200
+  kubectl port-forward svc/elasticsearch 9200:9200 &
 fi
 
 if [ "$1" == "destroy" ]; then
