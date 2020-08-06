@@ -11,7 +11,4 @@ jobs:
         version: "v0.8.1"
     - name: Testing
       run: |
-        kubectl cluster-info
-        kubectl get pods -n kube-system
-        kubectl apply -f scripts/fluentbit
-        kubectl apply -f scripts/elastic
+        bash scripts/test.sh start

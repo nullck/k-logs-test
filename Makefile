@@ -9,4 +9,4 @@ test: ci-setup
 	go test ./pkg/...
 
 ci-setup:
-	cd scripts; bash test.sh start; cd ..
+	bash scripts/test.sh start

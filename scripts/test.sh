@@ -34,12 +34,12 @@ fi
 if [ "$1" == "start" ]; then
   kind get clusters | grep "${CLUSTER_NAME}"
   if [ $? != 0 ]; then
-    kind create cluster --name ${CLUSTER_NAME} --config kind-1-18.yaml;
+    kind create cluster --name ${CLUSTER_NAME} --config scripts/kind-1-18.yaml;
     sleep 15;
     kubectl get pods
   fi
-  kubectl apply -f fluentbit
-  kubectl apply -f elastic
+  kubectl apply -f scripts/fluentbit
+  kubectl apply -f scripts/elastic
   sleep 5
   while ! kubectl get pods/elasticsearch-0 | grep "Running"; do
     sleep 2
