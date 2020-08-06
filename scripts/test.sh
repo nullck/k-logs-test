@@ -36,6 +36,7 @@ if [ "$1" == "start" ]; then
   if [ $? != 0 ]; then
     kind create cluster --name ${CLUSTER_NAME};
     sleep 15;
+    kubectl get pods
   fi
   kubectl apply -f fluentbit
   kubectl apply -f elastic
