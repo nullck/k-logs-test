@@ -2,7 +2,7 @@
 
 
 test-ci: ci-setup
-	go get -v -t -d ./..
+	go get -v -t -d ./pkg/..
 	go test ./pkg/...
 
 test: ci-setup
