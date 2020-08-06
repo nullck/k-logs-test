@@ -34,7 +34,7 @@ fi
 if [ "$1" == "start" ]; then
   kind get clusters | grep "${CLUSTER_NAME}"
   if [ $? != 0 ]; then
-    kind create cluster --name ${CLUSTER_NAME};
+    kind create cluster --name ${CLUSTER_NAME} --config kind-1-18.yaml;
     sleep 15;
     kubectl get pods
   fi
