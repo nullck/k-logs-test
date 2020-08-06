@@ -7,5 +7,5 @@ jobs:
     working_directory: /go/src/github.com/nullck/k-logs-test
     steps:
       - checkout
-      - run: go get -v -t -d ./...
-      - run: go test -v ./pkg/...
+      - setup_remote_docker
+      - run: make test-ci
