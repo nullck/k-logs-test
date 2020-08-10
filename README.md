@@ -34,7 +34,7 @@ Flags:
   -n, --namespace string          The pod namespace (default "default")
   -p, --pod-name string           The pod name (default "k-logs-test")
   -a, --slack-alert-enabled       Enable or not slack alerts
-      --threshold int             The Alert Threshould in seconds
+      --threshold int             The Alert Threshould in milliseconds
   -w, --webhook-url string        The Slack Webhook Url for notification
 
 Global Flags:

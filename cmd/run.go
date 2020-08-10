@@ -102,7 +102,7 @@ func init() {
 	runCmd.Flags().StringVarP(&namespaceName, "namespace", "n", "default", "The pod namespace")
 	runCmd.Flags().StringVarP(&elasticAddr, "elastic-endpoint", "e", "https://localhost:9200/fluentd", "The ElasticSearch Endpoint and the logs index name")
 	runCmd.Flags().BoolVarP(&slackAlertEnabled, "slack-alert-enabled", "a", false, "Enable or not slack alerts")
-	runCmd.Flags().IntVar(&threshold, "threshold", 0, "The Alert Threshould in seconds")
+	runCmd.Flags().IntVar(&threshold, "threshold", 1000, "The Alert Threshould in milliseconds")
 	runCmd.Flags().StringVarP(&slackChannel, "channel", "c", "#k-logs", "The Slack Channel for notification")
 	runCmd.Flags().StringVarP(&slackWebhookUrl, "webhook-url", "w", "", "The Slack Webhook Url for notification")
 }

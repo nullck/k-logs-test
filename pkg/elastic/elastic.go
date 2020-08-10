@@ -94,15 +94,15 @@ func (e *ES) Search() (string, error) {
 
 			elasticTimeP, _ := time.Parse(timeLayout, elasticTime[0])
 			containerTimeP, _ := time.Parse(timeLayout, containerTime[0])
-			timeDiff := elasticTimeP.Sub(containerTimeP).Seconds()
+			timeDiff := elasticTimeP.Sub(containerTimeP).Milliseconds()
 
 			log.Printf("container timestamp=%s\n elastic timestamp=%s", containerTimeP, elasticTimeP)
 			if e.Threshold > 0 {
-				if float64(e.Threshold) < timeDiff {
+				if float64(e.Threshold) < float64(timeDiff) {
 					status = "ALERT"
 				}
 			}
-			log.Printf("logs delayed in: %v seconds", timeDiff)
+			log.Printf("logs delayed in: %v milliseconds", timeDiff)
 		}
 		log.Printf("total logs %d", int(r["hits"].(map[string]interface{})["total"].(float64)))
 	}
