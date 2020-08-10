@@ -58,7 +58,7 @@ func (ts *TSearch) MockSearch(jsonStr []byte) (string, error) {
 		ElasticAddr: "http://localhost:9200/test_logs",
 		PodName:     ts.podName,
 		LogsHits:    1,
-		Threshold:   2,
+		Threshold:   2000,
 	}
 	s, err := e.Search()
 	return s, err
