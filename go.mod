@@ -8,6 +8,7 @@ require (
 	github.com/imdario/mergo v0.3.9 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/parnurzeal/gorequest v0.2.16 // indirect
+	github.com/prometheus/client_golang v1.7.1
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/viper v1.4.0
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
@@ -17,4 +18,5 @@ require (
 	k8s.io/client-go v0.18.0
 	k8s.io/utils v0.0.0-20200603063816-c1c6865ac451 // indirect
 	moul.io/http2curl v1.0.0 // indirect
+
 )

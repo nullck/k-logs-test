@@ -25,22 +25,33 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var podName string
-var namespaceName string
-var elasticAddr string
-var elasticRes string
-var logsHits int
-var threshold int
-
+var podName, namespaceName, elasticAddr, elasticRes, slackChannel, slackWebhookUrl, slackMsg string
+var logsHits, alertThreshold, threshold int
 var slackAlertEnabled bool
-var alertThreshold int
-var slackChannel string
-var slackWebhookUrl string
-var slackMsg string
 
 type s = slack.Slack
 type p = kubernetes_pods.Pod
 type e = elastic.ES
+
+var (
+	po = p{
+		PodName:       podName,
+		NamespaceName: namespaceName,
+	}
+
+	es = e{
+		ElasticAddr: elasticAddr,
+		PodName:     podName,
+		LogsHits:    logsHits,
+		Threshold:   threshold,
+	}
+
+	sl = s{
+		WebhookUrl: slackWebhookUrl,
+		Username:   "k-logs",
+		Channel:    slackChannel,
+	}
+)
 
 // runCmd represents the run command
 var runCmd = &cobra.Command{
@@ -50,10 +61,6 @@ var runCmd = &cobra.Command{
 
 k-logs-test run --pod-name test-logs --logs-hits 30 --namespace logs --elastic-endpoint https://localhost:9200/fluentd-2020 --slack-alert-enabled true --threshold 10 --webhook-url https://hooks.slack.com/services/XXX --channel #general`,
 	Run: func(cmd *cobra.Command, args []string) {
-		po := p{
-			PodName:       podName,
-			NamespaceName: namespaceName,
-		}
 
 		_, err := po.CreatePod(logsHits)
 		if err != nil {
@@ -62,12 +69,6 @@ k-logs-test run --pod-name test-logs --logs-hits 30 --namespace logs --elastic-e
 
 		log.Printf("k-logs checking total pods logs %d ...\n", logsHits)
 		time.Sleep(time.Duration(logsHits) * time.Second)
-		es := e{
-			ElasticAddr: elasticAddr,
-			PodName:     podName,
-			LogsHits:    logsHits,
-			Threshold:   threshold,
-		}
 
 		elasticRes, err = es.Search()
 		log.Printf("status: %v\n", elasticRes)
@@ -80,11 +81,6 @@ k-logs-test run --pod-name test-logs --logs-hits 30 --namespace logs --elastic-e
 		if elasticRes == "ALERT" {
 			if slackAlertEnabled {
 				slackMsg = "error: k-logs threshold reached!"
-				sl := s{
-					WebhookUrl: slackWebhookUrl,
-					Username:   "k-logs",
-					Channel:    slackChannel,
-				}
 				err = sl.Notification(slackMsg)
 				log.Printf("slack notification sent: %v\n", slackMsg)
 				if err != nil {
