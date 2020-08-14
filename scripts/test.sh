@@ -40,11 +40,13 @@ if [ "$1" == "start" ]; then
   fi
   kubectl apply -f scripts/fluentbit
   kubectl apply -f scripts/elastic
+  kubectl apply -f scripts/prometheus-pushgateway
   sleep 5
   while ! kubectl get pods/elasticsearch-0 | grep "Running"; do
     sleep 2
   done
   kubectl port-forward svc/elasticsearch 9200:9200 &
+  kubectl port-forward svc/prometheus-pushgateway 9091:9091 &
 fi
 
 if [ "$1" == "destroy" ]; then
