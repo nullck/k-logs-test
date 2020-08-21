@@ -18,6 +18,8 @@ type TSearch struct {
 	status  string
 }
 
+var promEnabled bool
+
 func (ts *TSearch) GenerateJson() []byte {
 	times := "2020-08-02T11:19:57"
 	containerLog := "2020-08-02T11:19:20.005Z stdout F tatata: 2020-08-02T11:19:20"
@@ -39,7 +41,7 @@ func (ts *TSearch) GenerateJson() []byte {
 	return jsonStr
 }
 
-func (ts *TSearch) MockSearch(jsonStr []byte) (string, error) {
+func (ts *TSearch) MockSearch(promEnabled bool, jsonStr []byte) (string, error) {
 	fmt.Printf("%v\n", string(jsonStr))
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
@@ -60,7 +62,8 @@ func (ts *TSearch) MockSearch(jsonStr []byte) (string, error) {
 		LogsHits:    1,
 		Threshold:   2000,
 	}
-	s, err := e.Search()
+
+	s, err := e.Search(promEnabled)
 	return s, err
 }
 
@@ -72,7 +75,8 @@ func TestSearch(t *testing.T) {
 		status:  "alert",
 	}
 	elasticJS := ts.GenerateJson()
-	s, err := ts.MockSearch(elasticJS)
+	promEnabled = false
+	s, err := ts.MockSearch(promEnabled, elasticJS)
 	if s != status {
 		t.Errorf("error %v", s)
 	}
@@ -88,7 +92,8 @@ func TestSearchOK(t *testing.T) {
 		status:  "OK",
 	}
 	elasticJS := ts.GenerateJson()
-	s, err := ts.MockSearch(elasticJS)
+	promEnabled = true
+	s, err := ts.MockSearch(promEnabled, elasticJS)
 	if s != status {
 		t.Errorf("error %v", s)
 	}

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/nullck/k-logs-test/pkg/prometheus_push"
 )
 
 type ES struct {
@@ -27,7 +28,7 @@ var timeLayout = "2006-01-02T15:04:05"
 var status = "OK"
 var logsMatch = 0
 
-func (e *ES) Search() (string, error) {
+func (e *ES) Search(promEnabled bool) (string, error) {
 	i := strings.Split(e.ElasticAddr, "/")
 	indexName := i[3]
 	elasticAddr := strings.Replace(e.ElasticAddr, "/"+indexName, "", 1)
@@ -97,6 +98,11 @@ func (e *ES) Search() (string, error) {
 			timeDiff := elasticTimeP.Sub(containerTimeP).Milliseconds()
 
 			log.Printf("container timestamp=%s\n elastic timestamp=%s", containerTimeP, elasticTimeP)
+
+			if promEnabled {
+				promMetric(timeDiff)
+			}
+
 			if e.Threshold > 0 {
 				if float64(e.Threshold) < float64(timeDiff) {
 					status = "ALERT"
@@ -107,4 +113,14 @@ func (e *ES) Search() (string, error) {
 		log.Printf("total logs %d", int(r["hits"].(map[string]interface{})["total"].(float64)))
 	}
 	return status, nil
+}
+
+func promMetric(timeDiff int64) {
+	type p = prometheus_push.Prometheus
+	var prom = p{
+		GWUrl:      "prometheus-pushgateway",
+		GWPort:     9091,
+		MetricName: "k-logs-delay",
+	}
+	prom.PushMetric(timeDiff)
 }

@@ -18,7 +18,7 @@ for i in kind kubectl; do
         chmod +x kubectl && sudo mv ./kubectl /usr/local/bin/kubectl
       fi
     else
-      echo "please check your installation"
+      echo "please check your kind AND/OR kubectl installation"
       exit 1
     fi
   fi
@@ -45,8 +45,15 @@ if [ "$1" == "start" ]; then
   while ! kubectl get pods/elasticsearch-0 | grep "Running"; do
     sleep 2
   done
-  kubectl port-forward svc/elasticsearch 9200:9200 &
-  kubectl port-forward svc/prometheus-pushgateway 9091:9091 &
+  # check if the connection through ports 9200 and 9091 are stablished. In case not, start the proxies
+  nc -z -v -w 2 127.0.0.1 9200
+  if [ $? != 0 ]; then
+    kubectl port-forward svc/elasticsearch 9200:9200 &
+  fi
+  nc -z -v -w 2 127.0.0.1 9091
+  if [ $? != 0 ]; then
+    kubectl port-forward svc/prometheus-pushgateway 9091:9091 &
+  fi
 fi
 
 if [ "$1" == "destroy" ]; then

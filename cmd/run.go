@@ -25,14 +25,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var podName, namespaceName, elasticAddr, elasticRes, slackChannel, slackWebhookUrl, slackMsg string
-var logsHits, alertThreshold, threshold int
-var slackAlertEnabled bool
-
-type s = slack.Slack
-type p = kubernetes_pods.Pod
-type e = elastic.ES
-
 // runCmd represents the run command
 var runCmd = &cobra.Command{
 	Use:   "run",
@@ -41,6 +33,14 @@ var runCmd = &cobra.Command{
 
 k-logs-test run --pod-name test-logs --logs-hits 30 --namespace logs --elastic-endpoint https://localhost:9200/fluentd-2020 --slack-alert-enabled true --threshold 10 --webhook-url https://hooks.slack.com/services/XXX --channel #general`,
 	Run: func(cmd *cobra.Command, args []string) {
+		var podName, namespaceName, elasticAddr, elasticRes, slackChannel, slackWebhookUrl, slackMsg string
+		var logsHits, threshold int
+		var slackAlertEnabled bool
+
+		type s = slack.Slack
+		type p = kubernetes_pods.Pod
+		type e = elastic.ES
+
 		var (
 			po = p{
 				PodName:       podName,
