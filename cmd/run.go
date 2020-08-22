@@ -25,18 +25,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var podName, namespaceName, elasticAddr, elasticRes, slackChannel, slackWebhookUrl, slackMsg, promGWAddr string
+var logsHits, threshold, promGWPort int
+var slackAlertEnabled, promEnabled bool
+
 // runCmd represents the run command
 var runCmd = &cobra.Command{
 	Use:   "run",
 	Short: "Start the test components",
 	Long: `Execute run to start the test components. For example:
 
-k-logs-test run --pod-name test-logs --logs-hits 30 --namespace logs --elastic-endpoint https://localhost:9200/fluentd-2020 --slack-alert-enabled true --threshold 10 --webhook-url https://hooks.slack.com/services/XXX --channel #general`,
+k-logs-test run --pod-name test-logs --logs-hits 30 --namespace logs --elastic-endpoint https://localhost:9200/fluentd-2020 --prom true --prom-addr prometheus-pushgateway --prom-port 9091 --slack-alert true --threshold 10 --webhook-url https://hooks.slack.com/services/XXX --channel #general`,
 	Run: func(cmd *cobra.Command, args []string) {
-		var podName, namespaceName, elasticAddr, elasticRes, slackChannel, slackWebhookUrl, slackMsg string
-		var logsHits, threshold int
-		var slackAlertEnabled bool
-
 		type s = slack.Slack
 		type p = kubernetes_pods.Pod
 		type e = elastic.ES
@@ -69,7 +69,7 @@ k-logs-test run --pod-name test-logs --logs-hits 30 --namespace logs --elastic-e
 		log.Printf("k-logs checking total pods logs %d ...\n", logsHits)
 		time.Sleep(time.Duration(logsHits) * time.Second)
 
-		elasticRes, err = es.Search()
+		elasticRes, err = es.Search(promEnabled, promGWAddr, promGWPort)
 		log.Printf("status: %v\n", elasticRes)
 
 		if elasticRes == "ALERT" {
@@ -96,6 +96,9 @@ func init() {
 	runCmd.Flags().IntVar(&logsHits, "logs-hits", 30, "The number of logs hits")
 	runCmd.Flags().StringVarP(&namespaceName, "namespace", "n", "default", "The pod namespace")
 	runCmd.Flags().StringVarP(&elasticAddr, "elastic-endpoint", "e", "https://localhost:9200/fluentd", "The ElasticSearch Endpoint and the logs index name")
+	runCmd.Flags().BoolVar(&promEnabled, "prom-enabled", false, "Enable or not the prometheus metrics")
+	runCmd.Flags().StringVar(&promGWAddr, "prom-endpoint", "prometheus-pushgateway", "The prometheus gateway addr")
+	runCmd.Flags().IntVar(&promGWPort, "prom-port", 9091, "The prometheus gateway port")
 	runCmd.Flags().BoolVarP(&slackAlertEnabled, "slack-alert-enabled", "a", false, "Enable or not slack alerts")
 	runCmd.Flags().IntVar(&threshold, "threshold", 1000, "The Alert Threshould in milliseconds")
 	runCmd.Flags().StringVarP(&slackChannel, "channel", "c", "#k-logs", "The Slack Channel for notification")

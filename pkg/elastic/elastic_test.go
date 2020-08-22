@@ -63,7 +63,9 @@ func (ts *TSearch) MockSearch(promEnabled bool, jsonStr []byte) (string, error) 
 		Threshold:   2000,
 	}
 
-	s, err := e.Search(promEnabled)
+	promGWAddr := "prometheus-pushgateway"
+	promGWPort := 9090
+	s, err := e.Search(promEnabled, promGWAddr, promGWPort)
 	return s, err
 }
 

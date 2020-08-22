@@ -28,7 +28,7 @@ var timeLayout = "2006-01-02T15:04:05"
 var status = "OK"
 var logsMatch = 0
 
-func (e *ES) Search(promEnabled bool) (string, error) {
+func (e *ES) Search(promEnabled bool, promGWAddr string, promGWPort int) (string, error) {
 	i := strings.Split(e.ElasticAddr, "/")
 	indexName := i[3]
 	elasticAddr := strings.Replace(e.ElasticAddr, "/"+indexName, "", 1)
@@ -100,7 +100,7 @@ func (e *ES) Search(promEnabled bool) (string, error) {
 			log.Printf("container timestamp=%s\n elastic timestamp=%s", containerTimeP, elasticTimeP)
 
 			if promEnabled {
-				promMetric(timeDiff)
+				promMetric(timeDiff, promGWAddr, promGWPort)
 			}
 
 			if e.Threshold > 0 {
@@ -115,11 +115,11 @@ func (e *ES) Search(promEnabled bool) (string, error) {
 	return status, nil
 }
 
-func promMetric(timeDiff int64) {
+func promMetric(timeDiff int64, promGWAddr string, promGWPort int) {
 	type p = prometheus_push.Prometheus
 	var prom = p{
-		GWUrl:      "prometheus-pushgateway",
-		GWPort:     9091,
+		GWUrl:      promGWAddr,
+		GWPort:     promGWPort,
 		MetricName: "k-logs-delay",
 	}
 	prom.PushMetric(timeDiff)
