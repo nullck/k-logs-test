@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  labels:
+    app: prometheus
+    purpose: demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+      purpose: demo
+  template:
+    metadata:
+      labels:
+        app: prometheus
+        purpose: demo
+    spec:
+      containers:
+      - name: prometheus-demo
+        image: prom/prometheus
+        volumeMounts:
+          - name: config-volume
+            mountPath: /etc/prometheus
+        ports:
+        - containerPort: 9090
+      volumes:
+        - name: config-volume
+          configMap:
+            name: prometheus-cm
+            items:
+            - key: prometheus.yml
+              path: prometheus.yml
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: prometheus-service
+spec:
+  selector:
+    app: prometheus
+    purpose: demo
+  ports:
+  - name: promui
+    protocol: TCP
+    port: 9090
+    targetPort: 9090
