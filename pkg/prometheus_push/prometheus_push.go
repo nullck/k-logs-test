@@ -14,15 +14,17 @@ type Prometheus struct {
 }
 
 func (p Prometheus) PushMetric(delayPeriod int64) {
+	//ref: https://godoc.org/github.com/prometheus/client_golang/prometheus/push#Pusher.Add
 	delayTime := prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "logs_delay_in_milliseconds",
 		Help: "Logs delay time defined in ms",
 	})
 	promoGw := fmt.Sprintf("%v:%v", p.GWUrl, p.GWPort)
-	if err := push.New(promoGw, p.MetricName).
-		Collector(delayTime).
-		Grouping("job", "logs_delay").
-		Push(); err != nil {
-		fmt.Println("Could not push completion time to Pushgateway:", err)
+	registry := prometheus.NewRegistry()
+	registry.MustRegister(delayTime)
+	pusher := push.New(promoGw, p.MetricName).Gatherer(registry)
+	delayTime.Set(float64(delayPeriod))
+	if err := pusher.Add(); err != nil {
+		fmt.Println("Could not push to Pushgateway:", err)
 	}
 }

@@ -79,7 +79,7 @@ func (e *ES) Search(promEnabled bool, promGWAddr string, promGWPort int) (string
 		}
 		if int(r["hits"].(map[string]interface{})["total"].(float64)) < e.LogsHits {
 			log.Printf("total logs lower than log-hits specified ... wait")
-			time.Sleep(1 * time.Second)
+			time.Sleep(200 * time.Millisecond)
 		} else {
 			logsMatch = int(r["hits"].(map[string]interface{})["total"].(float64))
 		}
