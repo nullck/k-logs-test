@@ -28,11 +28,31 @@ var timeLayout = "2006-01-02T15:04:05"
 var status = "OK"
 var logsMatch = 0
 
-func (e *ES) Search(promEnabled bool, promGWAddr string, promGWPort int) (string, error) {
+func (e *ES) GetIndex() (elasticAddr, indexName string) {
 	i := strings.Split(e.ElasticAddr, "/")
-	indexName := i[3]
-	elasticAddr := strings.Replace(e.ElasticAddr, "/"+indexName, "", 1)
+	indexName = i[3]
+	elasticAddr = strings.Replace(e.ElasticAddr, "/"+indexName, "", 1)
+	return elasticAddr, indexName
+}
 
+func (e *ES) DeleteIndex() {
+	elasticAddr, indexName := e.GetIndex()
+	cfg := elasticsearch.Config{
+		Addresses: []string{
+			elasticAddr,
+		},
+	}
+	es, _ := elasticsearch.NewClient(cfg)
+	res, err := es.Indices.Delete([]string{indexName})
+	fmt.Println(res, err)
+	if err != nil {
+		log.Fatalf("Fail deleting Index, getting the response: %s", err)
+	}
+	defer res.Body.Close()
+}
+
+func (e *ES) Search(promEnabled bool, promGWAddr string, promGWPort int) (string, error) {
+	elasticAddr, indexName := e.GetIndex()
 	cfg := elasticsearch.Config{
 		Addresses: []string{
 			elasticAddr,

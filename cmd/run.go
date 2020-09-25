@@ -87,6 +87,7 @@ k-logs-test run --pod-name test-logs --logs-hits 30 --namespace logs --elastic-e
 		if err != nil {
 			log.Fatalln(err)
 		}
+		es.DeleteIndex()
 	},
 }
 
