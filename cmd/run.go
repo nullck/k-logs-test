@@ -16,18 +16,20 @@ limitations under the License.
 package cmd
 
 import (
+	"fmt"
 	"log"
 	"time"
 
+	petname "github.com/dustinkirkland/golang-petname"
 	"github.com/nullck/k-logs-test/pkg/elastic"
 	"github.com/nullck/k-logs-test/pkg/kubernetes_pods"
 	"github.com/nullck/k-logs-test/pkg/slack"
 	"github.com/spf13/cobra"
 )
 
-var podName, namespaceName, elasticAddr, elasticRes, slackChannel, slackWebhookUrl, slackMsg, promGWAddr string
+var namespaceName, elasticAddr, elasticRes, slackChannel, slackWebhookUrl, slackMsg, promGWAddr string
 var logsHits, threshold, promGWPort int
-var slackAlertEnabled, promEnabled bool
+var slackAlertEnabled, promEnabled, deleteElasticIndex bool
 
 // runCmd represents the run command
 var runCmd = &cobra.Command{
@@ -35,11 +37,12 @@ var runCmd = &cobra.Command{
 	Short: "Start the test components",
 	Long: `Execute run to start the test components. For example:
 
-k-logs-test run --pod-name test-logs --logs-hits 30 --namespace logs --elastic-endpoint https://localhost:9200/fluentd-2020 --prom true --prom-addr prometheus-pushgateway --prom-port 9091 --slack-alert true --threshold 10 --webhook-url https://hooks.slack.com/services/XXX --channel #general`,
+k-logs-test run --logs-hits 30 --namespace logs --elastic-endpoint https://localhost:9200/fluentd-2020 --prom true --prom-addr prometheus-pushgateway --prom-port 9091 --slack-alert true --threshold 10 --webhook-url https://hooks.slack.com/services/XXX --channel #general`,
 	Run: func(cmd *cobra.Command, args []string) {
 		type s = slack.Slack
 		type p = kubernetes_pods.Pod
 		type e = elastic.ES
+		podName := fmt.Sprintf("k-logs-%s", GeneratePodName())
 
 		var (
 			po = p{
@@ -60,8 +63,9 @@ k-logs-test run --pod-name test-logs --logs-hits 30 --namespace logs --elastic-e
 				Channel:    slackChannel,
 			}
 		)
-
-		_, err := po.CreatePod(logsHits)
+		pop := &po
+		esp := &es
+		_, err := pop.CreatePod(logsHits)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -69,7 +73,7 @@ k-logs-test run --pod-name test-logs --logs-hits 30 --namespace logs --elastic-e
 		log.Printf("k-logs checking total pods logs %d ...\n", logsHits)
 		time.Sleep(time.Duration(logsHits) * time.Second)
 
-		elasticRes, err = es.Search(promEnabled, promGWAddr, promGWPort)
+		elasticRes, err = esp.Search(promEnabled, promGWAddr, promGWPort)
 		log.Printf("status: %v\n", elasticRes)
 
 		if elasticRes == "ALERT" {
@@ -83,20 +87,24 @@ k-logs-test run --pod-name test-logs --logs-hits 30 --namespace logs --elastic-e
 			}
 		}
 
-		_, err = po.DeletePod()
+		_, err = pop.DeletePod()
 		if err != nil {
 			log.Fatalln(err)
 		}
-		es.DeleteIndex()
 	},
+}
+
+func GeneratePodName() string {
+	petname.NonDeterministicMode()
+	podName := petname.Generate(2, "-")
+	return podName
 }
 
 func init() {
 	rootCmd.AddCommand(runCmd)
-	runCmd.Flags().StringVarP(&podName, "pod-name", "p", "k-logs-test", "The pod name")
 	runCmd.Flags().IntVar(&logsHits, "logs-hits", 30, "The number of logs hits")
 	runCmd.Flags().StringVarP(&namespaceName, "namespace", "n", "default", "The pod namespace")
-	runCmd.Flags().StringVarP(&elasticAddr, "elastic-endpoint", "e", "https://localhost:9200/fluentd", "The ElasticSearch Endpoint and the logs index name")
+	runCmd.Flags().StringVarP(&elasticAddr, "elastic-endpoint", "e", "https://localhost:9200/fluentd", "ElasticSearch Endpoint and the logs index name")
 	runCmd.Flags().BoolVar(&promEnabled, "prom-enabled", false, "Enable or not the prometheus metrics")
 	runCmd.Flags().StringVar(&promGWAddr, "prom-endpoint", "prometheus-pushgateway", "The prometheus gateway addr")
 	runCmd.Flags().IntVar(&promGWPort, "prom-port", 9091, "The prometheus gateway port")

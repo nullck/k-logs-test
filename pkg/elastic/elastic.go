@@ -35,22 +35,6 @@ func (e *ES) GetIndex() (elasticAddr, indexName string) {
 	return elasticAddr, indexName
 }
 
-func (e *ES) DeleteIndex() {
-	elasticAddr, indexName := e.GetIndex()
-	cfg := elasticsearch.Config{
-		Addresses: []string{
-			elasticAddr,
-		},
-	}
-	es, _ := elasticsearch.NewClient(cfg)
-	res, err := es.Indices.Delete([]string{indexName})
-	fmt.Println(res, err)
-	if err != nil {
-		log.Fatalf("Fail deleting Index, getting the response: %s", err)
-	}
-	defer res.Body.Close()
-}
-
 func (e *ES) Search(promEnabled bool, promGWAddr string, promGWPort int) (string, error) {
 	elasticAddr, indexName := e.GetIndex()
 	cfg := elasticsearch.Config{
@@ -59,7 +43,6 @@ func (e *ES) Search(promEnabled bool, promGWAddr string, promGWPort int) (string
 		},
 	}
 	es, _ := elasticsearch.NewClient(cfg)
-
 	for logsMatch < e.LogsHits {
 		query := map[string]interface{}{
 			"query": map[string]interface{}{
