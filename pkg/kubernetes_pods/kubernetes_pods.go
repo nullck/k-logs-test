@@ -15,7 +15,7 @@ import (
 )
 
 type Pod struct {
-	PodName       string
+	PodName       string // create a func that returns PodName with podName + - + random suffix
 	NamespaceName string
 }
 
@@ -42,7 +42,6 @@ func (p Pod) CreatePod(logsHits int) (string, error) {
 	}
 
 	podsClient := clientset.CoreV1().Pods(p.NamespaceName)
-
 	pod := &apiv1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: p.PodName,
@@ -58,7 +57,7 @@ func (p Pod) CreatePod(logsHits int) (string, error) {
 						},
 					},
 					Command: []string{
-						"/bin/sh", "-ec", "for i in `seq 1 ${LOGS_HITS}`; do echo \"$POD_NAME: `date +\"%Y-%m-%dT%T\"`\"; done",
+						"/bin/sh", "-ec", "for i in `seq 1 ${LOGS_HITS}`; do echo \"$POD_NAME: `date +\"%Y-%m-%dT%T\"`\"; done", "exit 0",
 					},
 					Env: []apiv1.EnvVar{
 						{
@@ -76,6 +75,7 @@ func (p Pod) CreatePod(logsHits int) (string, error) {
 					},
 				},
 			},
+			RestartPolicy: "Never",
 		},
 	}
 
