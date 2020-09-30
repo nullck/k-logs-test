@@ -26,41 +26,62 @@ var r map[string]interface{}
 var ej map[string]interface{}
 var timeLayout = "2006-01-02T15:04:05"
 var status = "OK"
-var logsMatch = 0
 
-func (e *ES) GetIndex() (elasticAddr, indexName string) {
+func (e *ES) getIndex() (elasticAddr, indexName string) {
 	i := strings.Split(e.ElasticAddr, "/")
 	indexName = i[3]
 	elasticAddr = strings.Replace(e.ElasticAddr, "/"+indexName, "", 1)
 	return elasticAddr, indexName
 }
 
+func (e *ES) getTotal() int {
+	elasticAddr, indexName := e.getIndex()
+	cfg := elasticsearch.Config{
+		Addresses: []string{
+			elasticAddr,
+		},
+	}
+	countQuery := fmt.Sprintf("kubernetes.pod_name: \"%s\"", string(e.PodName))
+	es, _ := elasticsearch.NewClient(cfg)
+	res, err := es.Count(
+		es.Count.WithContext(context.Background()),
+		es.Count.WithIndex(indexName),
+		es.Count.WithQuery(string(countQuery)),
+		es.Count.WithPretty(),
+	)
+	if err != nil {
+		log.Fatalf("error getting response from getTotal func: %s", err)
+	}
+	if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
+		log.Fatalf("error parsing the response body: %s", err)
+	}
+
+	return int(r["count"].(float64))
+}
+
 func (e *ES) Search(promEnabled bool, promGWAddr string, promGWPort int) (string, error) {
-	elasticAddr, indexName := e.GetIndex()
+	elasticAddr, indexName := e.getIndex()
 	cfg := elasticsearch.Config{
 		Addresses: []string{
 			elasticAddr,
 		},
 	}
 	es, _ := elasticsearch.NewClient(cfg)
+	logsMatch := 0
+
 	for logsMatch < e.LogsHits {
-		query := map[string]interface{}{
-			"query": map[string]interface{}{
-				"match": map[string]interface{}{
-					"kubernetes.pod_name": e.PodName,
-				},
-			},
-		}
-		if err := json.NewEncoder(&buf).Encode(query); err != nil {
-			log.Fatalf("Error encoding query: %s", err)
-		}
+		query := fmt.Sprintf("{\"query\": { \"match\": { \"kubernetes.pod_name\": {\"query\": \"%s\", \"operator\": \"and\"}}}}", e.PodName)
 		res, err := es.Search(
 			es.Search.WithContext(context.Background()),
 			es.Search.WithIndex(indexName),
-			es.Search.WithBody(&buf),
 			es.Search.WithTrackTotalHits(true),
 			es.Search.WithPretty(),
+			es.Search.WithErrorTrace(),
+			es.Search.WithBody(
+				strings.NewReader(query)),
 		)
+		logsMatch = e.getTotal()
+
 		if err != nil {
 			log.Fatalf("error getting response: %s", err)
 		}
@@ -80,11 +101,10 @@ func (e *ES) Search(promEnabled bool, promGWAddr string, promGWPort int) (string
 		if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
 			log.Fatalf("error parsing the response body: %s", err)
 		}
-		if int(r["hits"].(map[string]interface{})["total"].(float64)) < e.LogsHits {
+
+		if logsMatch < e.LogsHits {
 			log.Printf("total logs lower than log-hits specified ... wait")
-			time.Sleep(200 * time.Millisecond)
-		} else {
-			logsMatch = int(r["hits"].(map[string]interface{})["total"].(float64))
+			time.Sleep(500 * time.Millisecond)
 		}
 
 		re := regexp.MustCompile(`\d{4}\-\d{1,2}\-\d{1,2}T\d{1,2}\:\d{1,2}\:\d{1,2}$`)
@@ -113,7 +133,7 @@ func (e *ES) Search(promEnabled bool, promGWAddr string, promGWPort int) (string
 			}
 			log.Printf("logs delayed in: %v milliseconds", timeDiff)
 		}
-		log.Printf("total logs %d", int(r["hits"].(map[string]interface{})["total"].(float64)))
+		log.Printf("total logs %d", logsMatch)
 	}
 	return status, nil
 }
