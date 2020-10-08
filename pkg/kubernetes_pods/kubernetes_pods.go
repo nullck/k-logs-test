@@ -14,22 +14,29 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+var kubeconfig *string
+
 type Pod struct {
 	PodName       string // create a func that returns PodName with podName + - + random suffix
 	NamespaceName string
 }
 
-var kubeconfig *string
-
-func (p Pod) CreatePod(logsHits int) (string, error) {
-	if home := homeDir(); home != "" {
-		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
+func (p Pod) genkubeconfig() {
+	if os.Getenv("KUBECONFIG") != "" {
+		kubeconfig = flag.String("kubeconfig", os.Getenv("KUBECONFIG"), "(optional) absolute path to the kubeconfig file")
 	} else {
-		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
+		if home := homeDir(); home != "" {
+			kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
+		} else {
+			kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
+		}
 	}
 
 	flag.Parse()
+}
 
+func (p Pod) CreatePod(logsHits int) (string, error) {
+	p.genkubeconfig()
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
 	if err != nil {
 		panic(err.Error())
