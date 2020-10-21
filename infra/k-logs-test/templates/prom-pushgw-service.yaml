@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-pushgateway
+  annotations:
+    {}
+  labels:
+    {{- include "k-logs-test.labels" . | nindent 4 }}
+{{- with .Values.promGateway }}
+    {{- toYaml .labels | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .service.port }}
+      targetPort: {{ .service.port }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- toYaml .labels | nindent 4 }}
+{{ end }}

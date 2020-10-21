@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-pushgateway
+  labels:
+    {{- include "k-logs-test.labels" . | nindent 4 }}
+{{- with .Values.promGateway }}
+    {{- toYaml .labels | nindent 4 }}
+spec:
+  replicas: {{ .replicaCount | default 1 }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+     {{- toYaml .labels | nindent 6 }}
+  template:
+    metadata:
+      labels:
+      {{- toYaml .labels | nindent 8 }}
+      annotations:
+        {}
+    spec:
+      serviceAccountName: {{ .serviceAccountName }}
+      containers:
+        - name: pushgateway
+          image: "{{ .image.repository }}:{{ .image.tag }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: {{ .service.name | quote }}
+              containerPort: {{ .service.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: {{ .service.port }}
+            initialDelaySeconds: 10
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: {{ .service.port }}
+            initialDelaySeconds: 10
+            timeoutSeconds: 10
+          resources:
+            {{- toYaml .resources | nindent 12 }}
+{{ end }}

@@ -1,0 +1,10 @@
+helmDefaults:
+  timeout: 600
+  createNamespace: true
+
+releases:
+- name: klogs
+  chart: ./k-logs-test
+  namespace: klogs
+  values:
+    - k-logs-test/values.yaml
