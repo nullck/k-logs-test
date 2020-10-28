@@ -15,8 +15,15 @@ limitations under the License.
 */
 package main
 
-import "github.com/nullck/k-logs-test/cmd"
+import (
+	"os"
+
+	"github.com/nullck/k-logs-test/cmd"
+)
 
 func main() {
-	cmd.Execute()
+	rcmd := cmd.NewRootCommand()
+	if err := rcmd.Execute(); err != nil {
+		os.Exit(1)
+	}
 }
