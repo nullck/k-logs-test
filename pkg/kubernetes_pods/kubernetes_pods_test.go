@@ -20,7 +20,7 @@ func TestCreatePod(t *testing.T) {
 
 func TestDeletePod(t *testing.T) {
 	p := Pod{wantPo, "default"}
-	gotPo, err := p.DeletePod()
+	gotPo, err := p.DeletePod(p.PodName)
 	if gotPo != wantPo {
 		t.Errorf("DeletePod wants pod name %v, but got %v", wantPo, gotPo)
 	}
