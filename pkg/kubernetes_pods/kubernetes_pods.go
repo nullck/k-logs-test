@@ -18,7 +18,7 @@ import (
 var kubeconfig *string
 
 type Pod struct {
-	PodName       string // create a func that returns PodName with podName + - + random suffix
+	PodName       string
 	NamespaceName string
 }
 
@@ -56,6 +56,9 @@ func (p Pod) CreatePod(logsHits int) (string, error) {
 	pod := &apiv1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: p.PodName,
+			Labels: map[string]string{
+				"k_logs": "true",
+			},
 		},
 		Spec: apiv1.PodSpec{
 			Containers: []apiv1.Container{
@@ -99,7 +102,7 @@ func (p Pod) CreatePod(logsHits int) (string, error) {
 	return result.GetObjectMeta().GetName(), nil
 }
 
-func (p Pod) DeletePod() (string, error) {
+func (p Pod) DeletePod(podName string) (string, error) {
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
 	if err != nil {
 		panic(err.Error())
@@ -114,14 +117,43 @@ func (p Pod) DeletePod() (string, error) {
 	podsClient := clientset.CoreV1().Pods(p.NamespaceName)
 	deletePolicy := metav1.DeletePropagationForeground
 
-	log.Printf("pod \"%s\" is being deleted ...", p.PodName)
-	if err := podsClient.Delete(context.TODO(), p.PodName, metav1.DeleteOptions{
+	log.Printf("pod \"%s\" is being deleted ...", podName)
+	if err := podsClient.Delete(context.TODO(), podName, metav1.DeleteOptions{
 		PropagationPolicy: &deletePolicy,
 	}); err != nil {
+		log.Printf("Error deleting the pod \"%s\"", podName)
 		return "", err
 	}
-	log.Printf("pod deleted \"%s\"", p.PodName)
-	return p.PodName, nil
+	log.Printf("pod deleted \"%s\"", podName)
+	return podName, nil
+}
+
+func (p Pod) Cleaner() {
+	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	// creating the clientset
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	listOptions := metav1.ListOptions{
+		LabelSelector: "k_logs",
+	}
+	pods, err := clientset.CoreV1().Pods(p.NamespaceName).List(context.TODO(), listOptions)
+	if err != nil {
+		panic(err.Error())
+	}
+	log.Printf("starting the cleaner process\n")
+	// the p.PodName is already being deleted by the DeletePod func, so let's avoid repeating the same process again
+	for _, i := range pods.Items {
+		if p.PodName != i.ObjectMeta.Name {
+			p.DeletePod(i.ObjectMeta.Name)
+		}
+	}
 }
 
 func homeDir() string {

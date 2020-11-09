@@ -98,10 +98,12 @@ func NewRootCommand() *cobra.Command {
 				}
 			}
 
-			_, err = pop.DeletePod()
+			_, err = pop.DeletePod(pop.PodName)
 			if err != nil {
 				log.Fatalln(err)
 			}
+			// cleaner process, in case we are still some missing pods
+			pop.Cleaner()
 		},
 	}
 	runCmd.Flags().IntVar(&logsHits, "logs-hits", 30, "The number of logs hits")
