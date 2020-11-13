@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: prometheus-pushgateway
+  namespace: {{ .Values.namespace.name }}
   labels:
     {{- include "k-logs-test.labels" . | nindent 4 }}
 {{- with .Values.promGateway }}

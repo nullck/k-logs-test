@@ -13,6 +13,10 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+namespace:
+  create: true
+  name: k-logs
+
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
