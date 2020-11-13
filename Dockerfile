@@ -1,4 +1,9 @@
-FROM golang:1.14.10-stretch
+ARG GO_VERSION=1.15
+ARG VERSION=dev
+
+FROM --platform=${BUILDPLATFORM:-linux/amd64} tonistiigi/xx:golang AS xgo
+
+FROM --platform=${BUILDPLATFORM:-linux/amd64} golang:${GO_VERSION}-alpine
 
 ADD . /go/src/app
 WORKDIR /go/src/app
