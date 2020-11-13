@@ -1,0 +1,22 @@
+{{- if .Values.serviceAccount.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "k-logs-test.fullname" . }}-role
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "watch", "list", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "k-logs-test.fullname" . }}-rolebinding
+subjects:
+- kind: ServiceAccount
+  name: {{ include "k-logs-test.serviceAccountName" . }}
+roleRef:
+  kind: Role
+  name: {{ include "k-logs-test.fullname" . }}-role
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
