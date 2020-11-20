@@ -3,8 +3,9 @@ helmDefaults:
   createNamespace: false
 
 releases:
-- name: klogs
+- name: k-logs
   chart: ./k-logs-test
   namespace: k-logs
+  createNamespace: true
   values:
-    - k-logs-test/values.yaml
+    - ./k-logs-test/values.yaml
