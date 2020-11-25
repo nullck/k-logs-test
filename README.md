@@ -3,7 +3,16 @@
 
 K-logs-test helps you to be sure that your applications logs are getting into their destination (ElasticSearch) in a proper period of time.
 
+
+![image info](./docs/img/k-logs-test.png)
+
+
 In case the logs are taking more time than your team accept, k-logs-test will identify the problem before and notify you.
+Also you can use the metrics exposed by the Prometheus Gateway.
+
+![image info](./docs/img/k-logs-test-2.png)
+
+
 
 #### How it works?
 
