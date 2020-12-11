@@ -8,4 +8,4 @@ releases:
   namespace: k-logs
   createNamespace: true
   values:
-    - ./k-logs-test/values.yaml
+    - k-logs-test/test.yaml

@@ -28,16 +28,31 @@ serviceAccount:
 
 podAnnotations: {}
 
-podSecurityContext: {}
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
   # fsGroup: 2000
 
-securityContext: {}
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
   # capabilities:
   #   drop:
   #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
+
+envs:
+  K_LOGS_LOGS_HITS: 30
+  K_LOGS_CHANNEL: "#k-logs"
+  K_LOGS_ELASTIC_ENDPOINT: "https://localhost:9200/fluentd"
+  K_LOGS_NAMESPACE: "monitoring"
+  K_LOGS_POD_NAME: "test-logs"
+  K_LOGS_SLACK_ALERT_ENABLED: "true"
+  K_LOGS_THRESHOLD: "2000"
+  K_LOGS_WEBHOOK_URL: "https://hooks.slack.com/services/XXXXXXX/YYYYYY/WWWWW"
+  K_LOGS_PROM_ENABLED: "true"
+  K_LOGS_PROM_ENDPOINT: "localhost"
 
 ingress:
   enabled: false

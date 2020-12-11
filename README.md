@@ -1,23 +1,18 @@
 ## K-Logs-Test
 
 
-K-logs-test helps you to be sure that your applications logs are getting into their destination (ElasticSearch) in a proper period of time.
-
+K-logs-test helps you to be sure that your applications logs are getting into their destination (ElasticSearch) in a expected period of time.
 
 ![image info](./docs/img/k-logs-test.png)
 
-
-In case the logs are taking more time than your team accept, k-logs-test will identify the problem before and notify you.
+In case the logs are taking more time than your team accept, k-logs-test will identify the problem and notify you.
 Also you can use the metrics exposed by the Prometheus Gateway.
 
 ![image info](./docs/img/k-logs-test-2.png)
 
-
-
 #### How it works?
 
 k-logs-test will create a pod in your kubernetes in a namespace you've defined.
-
 
 #### How to use the k-logs-test?
 
@@ -56,7 +51,7 @@ Global Flags:
       --config string   config file (default is $HOME/.k-logs-test.yaml)
 ```
 
-You can also export env vars:
+Alternatively, we can just export these env-vars:
 
 ```
 export K_LOGS_LOGS_HITS=30
@@ -71,7 +66,7 @@ export K_LOGS_PROM_ENABLED="true"
 export K_LOGS_PROM_ENDPOINT="localhost"
 ```
 
-And then just run the k-logs-test run without to set the flags.
+And run the k-logs-test run without declaring any flags.
 
 ```
 k-logs-test run
