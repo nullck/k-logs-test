@@ -11,6 +11,9 @@ scripts/commands
 # Test binary, built with `go test -c`
 *.test
 
+# chart test values file
+infra/k-logs-test/test.yaml
+
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 

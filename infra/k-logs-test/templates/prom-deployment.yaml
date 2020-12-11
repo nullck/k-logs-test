@@ -21,8 +21,12 @@ spec:
         {}
     spec:
       serviceAccountName: {{ .serviceAccountName }}
+      securityContext:
+        {{- toYaml .podSecurityContext | nindent 8 }}
       containers:
         - name: pushgateway
+          securityContext:
+            {{- toYaml .securityContext | nindent 12 }}
           image: "{{ .image.repository }}:{{ .image.tag }}"
           imagePullPolicy: IfNotPresent
           ports:

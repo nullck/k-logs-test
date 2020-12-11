@@ -7,4 +7,4 @@ releases:
   chart: ./k-logs-test
   namespace: klogs
   values:
-    - k-logs-test/values.yaml
+    - k-logs-test/test.yaml
