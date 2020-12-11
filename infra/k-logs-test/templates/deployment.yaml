@@ -4,6 +4,7 @@ metadata:
   name: {{ include "k-logs-test.fullname" . }}
   labels:
     {{- include "k-logs-test.labels" . | nindent 4 }}
+  namespace: {{ .Values.namespace.name }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:

@@ -13,6 +13,10 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+namespace:
+  create: false
+  name: k-logs
+
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
@@ -20,7 +24,7 @@ serviceAccount:
   annotations: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: ""
+  name: "k-logs-sa"
 
 podAnnotations: {}
 
