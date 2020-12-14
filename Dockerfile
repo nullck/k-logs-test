@@ -1,12 +1,18 @@
 ARG GO_VERSION=1.15
 ARG VERSION=dev
 
-FROM --platform=${BUILDPLATFORM:-linux/amd64} tonistiigi/xx:golang AS xgo
+FROM --platform=${BUILDPLATFORM} golang:${GO_VERSION}-alpine AS build
 
-FROM --platform=${BUILDPLATFORM:-linux/amd64} golang:${GO_VERSION}-alpine
+WORKDIR /src
+ENV CGO_ENABLED=1
 
 ADD . /go/src/app
 WORKDIR /go/src/app
+
+ARG TARGETOS
+ARG TARGETARCH
+RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /go/src/k-logs .
+
 ENV K_LOGS_LOGS_HITS=30
 ENV K_LOGS_CHANNEL="#k-logs"
 ENV K_LOGS_ELASTIC_ENDPOINT="https=//localhost=9200/fluentd"
@@ -18,5 +24,7 @@ ENV K_LOGS_WEBHOOK_URL="https=//hooks.slack.com/services/XXXXXXX/YYYYYY/WWWWW"
 ENV K_LOGS_PROM_ENABLED="true"
 ENV K_LOGS_PROM_ENDPOINT="localhost"
 
-CMD ["go", "run", "main.go"]
+WORKDIR /go/src
+
+CMD ["./k-logs"]
 
