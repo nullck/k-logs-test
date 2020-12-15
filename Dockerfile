@@ -11,6 +11,7 @@ WORKDIR /go/src/app
 
 ARG TARGETOS
 ARG TARGETARCH
+RUN apk add build-base
 RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /go/src/k-logs .
 
 ENV K_LOGS_LOGS_HITS=30
