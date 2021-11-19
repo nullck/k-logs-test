@@ -50,25 +50,22 @@ func NewRootCommand() *cobra.Command {
 			return initializeConfig(cmd)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			type s = slack.Slack
-			type p = kubernetes_pods.Pod
-			type e = elastic.ES
 			podName := fmt.Sprintf("k-logs-%s", GeneratePodName())
 
 			var (
-				po = p{
+				po = kubernetes_pods.Pod{
 					PodName:       podName,
 					NamespaceName: namespaceName,
 				}
 
-				es = e{
+				es = elastic.ES{
 					ElasticAddr: elasticAddr,
 					PodName:     podName,
 					LogsHits:    logsHits,
 					Threshold:   threshold,
 				}
 
-				sl = s{
+				sl = slack.Slack{
 					WebhookUrl: slackWebhookUrl,
 					Username:   "k-logs",
 					Channel:    slackChannel,

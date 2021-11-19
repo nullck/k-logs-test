@@ -107,14 +107,12 @@ func (e *ES) Search(promEnabled bool, promGWAddr string, promGWPort int) (string
 			time.Sleep(500 * time.Millisecond)
 		}
 
-		re := regexp.MustCompile(`\d{4}\-\d{1,2}\-\d{1,2}T\d{1,2}\:\d{1,2}\:\d{1,2}$`)
-
 		for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
 			elasticTimestamp := fmt.Sprintf("%v", hit.(map[string]interface{})["_source"].(map[string]interface{})["@timestamp"])
 			elasticTime := strings.Split(elasticTimestamp, ".")
 
 			containerMsgTimestamp := fmt.Sprintf("%v", hit.(map[string]interface{})["_source"].(map[string]interface{})["log"])
-			containerTime := re.FindAllString(containerMsgTimestamp, 1)
+			containerTime := regexp.MustCompile(`\d{4}\-\d{1,2}\-\d{1,2}T\d{1,2}\:\d{1,2}\:\d{1,2}$`).FindAllString(containerMsgTimestamp, 1)
 
 			elasticTimeP, _ := time.Parse(timeLayout, elasticTime[0])
 			containerTimeP, _ := time.Parse(timeLayout, containerTime[0])
@@ -139,8 +137,7 @@ func (e *ES) Search(promEnabled bool, promGWAddr string, promGWPort int) (string
 }
 
 func promMetric(timeDiff int64, promGWAddr string, promGWPort int) {
-	type p = prometheus_push.Prometheus
-	var prom = p{
+	var prom = prometheus_push.PrometheusPusher{
 		GWUrl:      promGWAddr,
 		GWPort:     promGWPort,
 		MetricName: "k-logs-delay",

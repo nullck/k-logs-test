@@ -7,13 +7,13 @@ import (
 	"github.com/prometheus/client_golang/prometheus/push"
 )
 
-type Prometheus struct {
+type PrometheusPusher struct {
 	GWUrl      string
 	GWPort     int
 	MetricName string
 }
 
-func (p Prometheus) PushMetric(delayPeriod int64) {
+func (p PrometheusPusher) PushMetric(delayPeriod int64) {
 	//ref: https://godoc.org/github.com/prometheus/client_golang/prometheus/push#Pusher.Add
 	delayTime := prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "logs_delay_in_milliseconds",
